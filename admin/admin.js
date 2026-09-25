@@ -130,7 +130,7 @@ function drawer(code){
   let startX=0;const modal=document.querySelector('.record-modal');modal.addEventListener('touchstart',event=>startX=event.changedTouches[0].clientX,{passive:true});modal.addEventListener('touchend',event=>{const delta=event.changedTouches[0].clientX-startX;if(Math.abs(delta)>70)move(delta>0?previous:next)},{passive:true});
   document.querySelector('#save').onclick=()=>{const decision=document.querySelector('#decision').value,note=document.querySelector('#note').value;close();save(person,{review:decision,reviewNote:note})};
 }
-function label(key){return key.replace(/([A-Z])/g,' $1').replace(/^./,x=>x.toUpperCase())}
+function label(key){const question=PASTOR_QUESTIONS.find(q=>q.id===key);if(question&&key!=='intention')return question.title;return key.replace(/([A-Z])/g,' $1').replace(/^./,x=>x.toUpperCase())}
 function esc(value=''){return String(value).replace(/[&<>'"]/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char]))}
 window.addEventListener('storage',()=>dashboard());
 dashboard();

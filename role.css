@@ -90,3 +90,23 @@ html[data-capture-protection="active"] img{-webkit-user-drag:none;pointer-events
 .denomination-name{display:block;font-size:clamp(21px,2.2vw,32px);line-height:1.2;font-weight:750;color:#087f82;overflow-wrap:anywhere}
 .organization-name{display:block;font-size:13px;line-height:1.4;margin-top:9px;letter-spacing:1.1px;font-weight:650;color:#55777b}
 @media(max-width:540px){.identity-copy .profile-denomination{padding:16px;gap:14px}.profile-denomination .denomination-logo{width:58px;height:58px}}
+
+/* Show focus around the rounded access control, without a square input outline. */
+.access-card input:focus-visible{outline:none}
+.access-card:has(input:focus-visible){outline:3px solid #79d4ce;outline-offset:4px}
+.access-card input{border-radius:12px}
+.payment-methods{display:flex;gap:6px;padding:6px;margin-top:28px;background:#edf4f3;border-radius:14px}
+.payment-methods button{flex:1;border:0;padding:14px 12px;border-radius:10px;background:transparent;color:#526c73;font-weight:700}
+.payment-methods button[aria-pressed="true"]{background:#0d8587;color:#fff}
+.payment-single [hidden]{display:none!important}
+.bank-details{margin-top:28px;padding:28px;border:1px solid #dce5e6;border-radius:18px;background:#f7faf9}
+.bank-details h2{font-size:30px;margin:12px 0 24px;letter-spacing:-.6px}
+.bank-fields{margin:0}
+.bank-fields>div{padding:15px 0;border-top:1px solid #dce5e6}
+.bank-fields dt{font-size:13px;color:#61767c;margin-bottom:7px}
+.bank-fields dd{margin:0;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.bank-fields strong{font-size:21px;overflow-wrap:anywhere}
+.bank-fields button{border:1px solid #cbdcdd;background:white;border-radius:8px;padding:8px 12px;color:#087f82;font-size:12px;flex-shrink:0}
+.bank-source{display:inline-block;margin-top:18px;color:#087f82;font-size:13px;text-decoration:underline;text-underline-offset:3px}
+.copy-status{font-size:13px;color:#087f82;min-height:18px}
+@media(max-width:540px){.bank-details{padding:20px 16px}.bank-fields strong{font-size:18px}.payment-single .transfer-heading{flex-wrap:wrap}.gate-logo{width:90px;height:108px}}
