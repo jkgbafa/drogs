@@ -1,0 +1,91 @@
+import os
+from pathlib import Path
+from playwright.sync_api import sync_playwright, expect
+BASE=os.environ.get('DROGS_BASE_URL','http://127.0.0.1:4207/drogs-registration').rstrip('/')
+ROOT=Path(__file__).resolve().parents[2]
+OUT=Path(os.environ.get('DROGS_SCREENSHOTS','/tmp/drogs-registration-qa'));OUT.mkdir(parents=True,exist_ok=True)
+PHOTO=str(ROOT/'assets/pastors/reconciled-5.webp')
+with sync_playwright() as p:
+ browser=p.chromium.launch(headless=True,executable_path=os.environ.get('PLAYWRIGHT_EXECUTABLE_PATH','/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'))
+ context=browser.new_context(viewport={'width':1440,'height':1050})
+ page=context.new_page();errors=[]
+ page.on('pageerror',lambda e:errors.append(str(e)))
+ def open_account(email,office=False):
+  page.goto(BASE+('/admin/' if office else '/'));page.wait_for_load_state('networkidle')
+  if page.get_by_label('Platform password').is_visible():
+   page.get_by_label('Platform password').fill('1234');page.get_by_role('button',name='Enter DROGS').click()
+  page.get_by_label('Email address',exact=True).fill(email)
+  page.get_by_role('button',name='Continue with demo account').click()
+  page.locator('main').wait_for()
+ def signout():
+  page.get_by_role('button',name='Sign out',exact=True).click();page.get_by_label('Platform password').wait_for()
+ def register(name,role='pastor',bishop='B1'):
+  page.get_by_label('Registering as').select_option(role)
+  page.get_by_label('Organization',exact=True).select_option('First Love')
+  page.get_by_label('Full name',exact=True).fill(name)
+  page.get_by_label('Phone number').fill('+233201234567')
+  page.get_by_label('Date of birth').fill('1990-02-01')
+  page.get_by_label('Church',exact=True).fill('Grace Church')
+  if role=='pastor':page.get_by_label('Supervising bishop',exact=True).select_option(bishop)
+  page.get_by_label('Photo in official attire',exact=True).set_input_files(PHOTO)
+  expect(page.get_by_text('Photo uploaded. Choose a new image to replace it.')).to_be_visible()
+ def submit():
+  page.get_by_role('button',name='Review registration').click()
+  page.get_by_label('I confirm that these details').check()
+  page.get_by_role('button',name='Submit registration').click()
+  expect(page.get_by_role('heading',name='Your registration',exact=True)).not_to_be_visible()
+  expect(page.get_by_text('Your registration has been received.')).to_be_visible()
+ try:
+  page.goto(BASE+'/');page.wait_for_load_state('networkidle');page.screenshot(path=str(OUT/'entrance.png'),full_page=True)
+  page.evaluate("localStorage.setItem('drogs-2027',JSON.stringify({legacy:'untouched'}))")
+  open_account('bishop@example.com');register('Demo Bishop','bishop');page.screenshot(path=str(OUT/'bishop-form.png'),full_page=True);submit()
+  expect(page.get_by_text('Your bishop account is awaiting verification.')).to_be_visible()
+  expect(page.get_by_text('$100',exact=False).first).to_be_visible()
+  signout();open_account('office@example.com',True)
+  expect(page.get_by_text('No confirmed registrations yet',exact=True)).to_be_visible()
+  page.get_by_role('button',name='Bishop approvals',exact=True).click();page.get_by_role('button',name='Demo Bishop').click()
+  page.get_by_label('Match to existing bishop reference').select_option('B1');page.get_by_label('I have verified this person').check();page.get_by_role('button',name='Approve bishop account').click()
+  expect(page.get_by_text('No bishop accounts awaiting approval')).to_be_visible()
+  signout();open_account('bishop@example.com');page.get_by_role('button',name='My pastors',exact=True).click()
+  page.get_by_label('Pastor list',exact=True).fill('Jon Demo, pastor@example.com, +233201234567, Grace Church')
+  page.get_by_role('button',name='Add to annual list').click();expect(page.get_by_role('cell',name='Jon Demo')).to_be_visible()
+  signout();open_account('pastor@example.com');register('John Demo')
+  page.get_by_role('button',name='Save draft').click();expect(page.get_by_text('Draft saved. You can return to finish it.')).to_be_visible()
+  page.reload();page.wait_for_load_state('networkidle');expect(page.get_by_label('Full name',exact=True)).to_have_value('John Demo')
+  page.set_viewport_size({'width':390,'height':844});page.screenshot(path=str(OUT/'mobile-form.png'),full_page=True)
+  assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
+  page.get_by_role('button',name='Review registration').click();expect(page.get_by_role('button',name='Submit registration')).to_be_disabled()
+  page.get_by_role('button',name='Edit details').click();expect(page.get_by_label('Full name',exact=True)).to_have_value('John Demo');submit()
+  expect(page.get_by_text('Your bishop has not confirmed you yet.')).to_be_visible()
+  expect(page.get_by_role('button',name='Submit payment proof')).not_to_be_visible()
+  page.screenshot(path=str(OUT/'mobile-unclaimed-status.png'),full_page=True)
+  signout();page.set_viewport_size({'width':1440,'height':1050});open_account('office@example.com',True)
+  page.get_by_role('button',name='Directory',exact=True).click();expect(page.get_by_role('button',name='John Demo')).not_to_be_visible()
+  page.get_by_role('button',name='Unclaimed').click();page.screenshot(path=str(OUT/'unclaimed-office.png'),full_page=True)
+  page.get_by_role('button',name='John Demo').click();page.screenshot(path=str(OUT/'unclaimed-review.png'),full_page=True)
+  opts=page.get_by_label('Link to annual list').locator('option').all_text_contents();assert any('Jon Demo' in o for o in opts)
+  page.get_by_label('Link to annual list').select_option(index=1);page.get_by_role('button',name='Confirm pastor · unlock payment').click()
+  expect(page.get_by_text('No Unclaimed registrations',exact=True)).to_be_visible()
+  page.get_by_role('button',name='Directory',exact=True).click();expect(page.get_by_role('button',name='John Demo')).to_be_visible();page.screenshot(path=str(OUT/'directory.png'),full_page=True)
+  page.set_viewport_size({'width':390,'height':844});page.evaluate('() => Promise.all(Array.from(document.images).map(i => i.decode().catch(() => {})))');page.evaluate('() => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)))');assert page.locator('.reg-header').count()==1;page.screenshot(path=str(OUT/'mobile-directory.png'),full_page=True);context.storage_state(path=str(OUT/'browser-state.json'),indexed_db=True);assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
+  signout();open_account('pastor@example.com');expect(page.get_by_text('Your registration is confirmed.')).to_be_visible()
+  expect(page.get_by_role('button',name='Submit payment proof')).to_be_disabled()
+  page.get_by_label('Payment screenshot').set_input_files(PHOTO);expect(page.get_by_alt_text('Payment proof preview')).to_be_visible();page.get_by_label('I understand that my $50').check();page.get_by_role('button',name='Submit payment proof').click()
+  expect(page.get_by_text('Payment awaiting verification',exact=True)).to_be_visible()
+  signout();page.set_viewport_size({'width':1440,'height':1050});open_account('office@example.com',True);page.get_by_role('button',name='Payments',exact=True).click()
+  page.get_by_role('button',name='John Demo').click();page.get_by_role('button',name='Verify received payment').click();expect(page.get_by_text('No payments waiting',exact=True)).to_be_visible()
+  page.get_by_role('button',name='Annual lists',exact=True).click();page.get_by_role('button',name='Remove',exact=True).click();page.get_by_label('Reason',exact=True).select_option('Dismissed');page.get_by_role('button',name='Confirm removal').click();expect(page.get_by_text('Dismissed',exact=True)).to_be_visible()
+  page.get_by_role('button',name='History',exact=True).click();page.get_by_role('button',name='Open 2028 registration cycle').click();page.get_by_role('button',name='Open new cycle',exact=True).click();expect(page.get_by_text('2028 annual registration',exact=True)).to_be_visible()
+  page.get_by_role('button',name='Directory',exact=True).click();page.get_by_label('Annual cycle',exact=True).select_option('2028');expect(page.get_by_text('No confirmed registrations yet',exact=True)).to_be_visible()
+  state=page.evaluate("JSON.parse(localStorage.getItem('drogs-registration-v1'))")
+  assert state['year']==2028
+  assert len([r for r in state['registrations'] if r['year']==2028])==0
+  assert any(r['payment']=='verified' and r['status']=='removed' for r in state['registrations'])
+  assert page.evaluate("JSON.parse(localStorage.getItem('drogs-2027')).legacy")=='untouched'
+  assert errors==[],errors
+  print('Browser checks passed: registration, saved drafts, office bishop verification, annual roster, Unclaimed isolation, manual linking, payment locking/proof/verification, removal, annual reset, preserved legacy data, desktop and mobile.')
+ except Exception:
+  page.screenshot(path=str(OUT/'failure.png'),full_page=True)
+  print(page.locator('body').inner_text()[:5000],flush=True)
+  raise
+ finally:browser.close()

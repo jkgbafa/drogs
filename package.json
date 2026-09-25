@@ -4,19 +4,22 @@
   "type": "module",
   "scripts": {
     "serve": "node scripts/serve-export.mjs",
-    "test:browser": "node tests/application_review_browser.mjs",
+    "test:browser": "python3 tests/registration/browser.py",
     "test:api": "node --test tests/api.test.mjs",
     "api:key": "node scripts/create_api_key.mjs",
     "predev": "node scripts/prepare-public.mjs",
     "dev": "next dev",
     "prebuild": "node scripts/prepare-public.mjs",
     "build": "next build",
-    "test": "node --test tests/api.test.mjs tests/role_reconciliation.test.mjs tests/question_versions.test.mjs tests/photo_url.test.mjs tests/portrait_framing.test.mjs tests/progress_status.test.mjs tests/bulk_review.test.mjs tests/application_review.test.mjs"
+    "test": "node --test tests/registration/*.test.mjs",
+    "test:legacy": "node --test tests/api.test.mjs tests/role_reconciliation.test.mjs tests/question_versions.test.mjs tests/photo_url.test.mjs tests/portrait_framing.test.mjs tests/progress_status.test.mjs tests/bulk_review.test.mjs tests/application_review.test.mjs"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.5.8",
     "playwright": "^1.62.1"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.117.2",
     "next": "16.3.6",
     "react": "19.3.0",
     "react-dom": "19.3.0"

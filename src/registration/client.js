@@ -1,0 +1,143 @@
+import { createClient } from "@supabase/supabase-js";
+import references from "./reference-bishops.json";
+import {
+  STORAGE_KEY,
+  emptyState,
+  applyAction,
+  visibleState,
+  normalEmail,
+} from "./model.mjs";
+const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+export const live = Boolean(url && key);
+export const configError = Boolean(url) !== Boolean(key);
+let client;
+const supabase = () =>
+  client ||
+  (client = createClient(url, key, {
+    auth: { storageKey: "drogs-registration-auth" },
+  }));
+const sessionKey = "drogs-registration-demo-account";
+const read = () =>
+  JSON.parse(localStorage.getItem(STORAGE_KEY) || "null") || emptyState();
+function mediaDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open("drogs-registration-media", 1);
+    request.onupgradeneeded = () => request.result.createObjectStore("files");
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+async function fileOperation(mode, fn) {
+  const db = await mediaDB();
+  try {
+    return await new Promise((resolve, reject) => {
+      const tx = db.transaction("files", mode);
+      const request = fn(tx.objectStore("files"));
+      let value;
+      request.onsuccess = () => {
+        value = request.result;
+      };
+      tx.oncomplete = () => resolve(value);
+      tx.onerror = () => reject(tx.error);
+      tx.onabort = () => reject(tx.error || Error("Unable to save the file."));
+    });
+  } finally {
+    db.close();
+  }
+}
+function check(error) {
+  if (error) throw Error(error.message);
+}
+export async function currentActor() {
+  if (configError)
+    throw Error("Both Supabase URL and public key must be configured.");
+  if (!live) return JSON.parse(sessionStorage.getItem(sessionKey) || "null");
+  const { data, error } = await supabase().auth.getUser();
+  if (error || !data.user) return null;
+  return { id: data.user.id, email: data.user.email };
+}
+export async function requestCode(email) {
+  const { error } = await supabase().auth.signInWithOtp({
+    email,
+    options: { shouldCreateUser: true },
+  });
+  check(error);
+}
+export async function verifyCode(email, token) {
+  const { data, error } = await supabase().auth.verifyOtp({
+    email,
+    token,
+    type: "email",
+  });
+  check(error);
+  return { id: data.user.id, email: data.user.email };
+}
+export function demoSignIn(email, office = false) {
+  email = normalEmail(email);
+  const p = read().profiles.find((p) => normalEmail(p.email) === email);
+  const actor = { id: p?.id || crypto.randomUUID(), email, office };
+  sessionStorage.setItem(sessionKey, JSON.stringify(actor));
+  return actor;
+}
+export async function signOut() {
+  if (live) {
+    const { error } = await supabase().auth.signOut();
+    check(error);
+  } else sessionStorage.removeItem(sessionKey);
+}
+export async function snapshot(actor) {
+  if (!live) return visibleState(read(), actor, references);
+  const { data, error } = await supabase().rpc("registration_snapshot");
+  check(error);
+  return data;
+}
+export async function action(actor, name, payload) {
+  if (live) {
+    const { error } = await supabase().rpc("registration_action", {
+      action_name: name,
+      payload,
+    });
+    check(error);
+    return;
+  }
+  const write = () => {
+    const state = applyAction(read(), actor, name, payload);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    window.dispatchEvent(new Event("registration-change"));
+  };
+  if (navigator.locks) await navigator.locks.request(STORAGE_KEY, write);
+  else write();
+}
+export async function upload(actor, file, kind = "portrait") {
+  if (!file || !["image/jpeg", "image/png", "image/webp"].includes(file.type))
+    throw Error("Choose a JPG, PNG or WebP image.");
+  if (file.size > 5 * 1024 * 1024)
+    throw Error("Choose an image smaller than 5 MB.");
+  const image = await createImageBitmap(file);
+  if (!image.width || !image.height)
+    throw Error("This image could not be opened.");
+  image.close();
+  const path = `${actor.id}/${kind}/${crypto.randomUUID()}.${file.type.split("/")[1]}`;
+  if (live) {
+    const { error } = await supabase()
+      .storage.from("registration-media")
+      .upload(path, file, { contentType: file.type, upsert: false });
+    check(error);
+  } else await fileOperation("readwrite", (store) => store.put(file, path));
+  return path;
+}
+export async function mediaUrl(path) {
+  if (!path) return "";
+  if (live) {
+    const { data, error } = await supabase()
+      .storage.from("registration-media")
+      .createSignedUrl(path, 3600);
+    check(error);
+    return data.signedUrl;
+  }
+  const file = await fileOperation("readonly", (store) => store.get(path));
+  return file ? URL.createObjectURL(file) : "";
+}
+export const referenceImage = (role) =>
+  `${process.env.NEXT_PUBLIC_BASE_PATH || ""}/${role === "bishop" ? "assets/bishops/001.jpg" : "assets/pastors/reconciled-5.webp"}`;

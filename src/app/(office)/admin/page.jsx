@@ -1,2 +1,2 @@
-import Workspace from '../../../components/Workspace';
-export default function Administration(){return <Workspace kind="admin" />;}
+import RegistrationApp from '../../../registration/RegistrationApp';
+export default function Administration(){return <RegistrationApp office/>}

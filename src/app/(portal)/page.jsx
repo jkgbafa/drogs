@@ -1,2 +1,2 @@
-import Workspace from '../../components/Workspace';
-export default function Home(){return <Workspace kind="portal" />;}
+import RegistrationApp from '../../registration/RegistrationApp';
+export default function Home(){return <RegistrationApp/>}
