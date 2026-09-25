@@ -121,7 +121,7 @@ for row in sheet.iter_rows(min_row=2, values_only=True):
     branch = name_case(row[positions["BRANCH"]])
     branch = re.sub(r"(?i)first\s*love", "Central Church", branch)
     country = name_case(row[positions["COUNTRY"]])
-    if not name or not denomination:
+    if not name:
         continue
     key = (re.sub(r"[^a-z]", "", name.lower()), denomination.lower(), branch.lower(), country.lower())
     if key in seen:

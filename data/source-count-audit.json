@@ -1,0 +1,31 @@
+{
+  "source": "PASTORS DATA.xlsx",
+  "sheetRowsIncludingHeader": 4710,
+  "sourcePeopleRows": 4709,
+  "mappedRowsByCategory": {
+    "pastors:UD-OLGC": 4348,
+    "bishops:UD-OLGC": 215,
+    "pastors:UO-FLC190": 101,
+    "bishops:UO-FLC190": 44,
+    "excludedByRequest": 1
+  },
+  "distinctRecordsByCategory": {
+    "pastors:UD-OLGC": 4343,
+    "bishops:UD-OLGC": 215,
+    "pastors:UO-FLC190": 101,
+    "bishops:UO-FLC190": 44
+  },
+  "repeatedRowsMappingToSameRecord": 5,
+  "unresolvedRows": 0,
+  "restoredBlankDenominationRecords": 4,
+  "directoryCounts": {
+    "bishops": {
+      "UD-OLGC": 238,
+      "UO-FLC190": 77
+    },
+    "pastors": {
+      "UD-OLGC": 4343,
+      "UO-FLC190": 681
+    }
+  }
+}
