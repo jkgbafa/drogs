@@ -17206,6 +17206,56 @@
       "key": "portraits/90/90891fbba7d4ecc5e6e96bdd03b35571675d2ec2cbae3771f7271f26a2612dff.jpeg",
       "sha256": "90891fbba7d4ecc5e6e96bdd03b35571675d2ec2cbae3771f7271f26a2612dff",
       "bytes": 99435
+    },
+    "assets/outreach/confirmed-329.jpg": {
+      "key": "portraits/d5/d5e93fa3f0d388bb97eaf5057b2d612e5b83668ff6aa3ce9139c9dfcce8c3e1a.jpg",
+      "sha256": "d5e93fa3f0d388bb97eaf5057b2d612e5b83668ff6aa3ce9139c9dfcce8c3e1a",
+      "bytes": 30272
+    },
+    "assets/outreach/confirmed-330.jpeg": {
+      "key": "portraits/94/9493ec913c4188057e360a41d999721cd94d54f2325b8ad7afbda0256a2d01f5.jpeg",
+      "sha256": "9493ec913c4188057e360a41d999721cd94d54f2325b8ad7afbda0256a2d01f5",
+      "bytes": 45812
+    },
+    "assets/outreach/confirmed-331.jpeg": {
+      "key": "portraits/60/60e8f7797df648a5b8a4a94d9bf2172961578b2b3605f550c42d335c045cb851.jpeg",
+      "sha256": "60e8f7797df648a5b8a4a94d9bf2172961578b2b3605f550c42d335c045cb851",
+      "bytes": 64939
+    },
+    "assets/outreach/confirmed-332.jpg": {
+      "key": "portraits/90/90b0eae4115fe70cb6b5c4fec453c7823ef137034770681a85deef59a7a1e1c7.jpg",
+      "sha256": "90b0eae4115fe70cb6b5c4fec453c7823ef137034770681a85deef59a7a1e1c7",
+      "bytes": 399490
+    },
+    "assets/outreach/confirmed-334.jpg": {
+      "key": "portraits/c3/c3b007adfcf8eda22c83469aabd4093f68a4f278dc1d2e61e0b44a7a6879df9d.jpg",
+      "sha256": "c3b007adfcf8eda22c83469aabd4093f68a4f278dc1d2e61e0b44a7a6879df9d",
+      "bytes": 84030
+    },
+    "assets/outreach/confirmed-335.jpg": {
+      "key": "portraits/e0/e08a20e11d164dc6a5c541e8ac1fbb1f00f791c6b1f738a046d7c4d2df93bc28.jpg",
+      "sha256": "e08a20e11d164dc6a5c541e8ac1fbb1f00f791c6b1f738a046d7c4d2df93bc28",
+      "bytes": 195594
+    },
+    "assets/outreach/confirmed-336.jpeg": {
+      "key": "portraits/d3/d3c06f45eecde657e9fe86b1ceaae295cb23d2de548198b0205ccbb05c6f9134.jpeg",
+      "sha256": "d3c06f45eecde657e9fe86b1ceaae295cb23d2de548198b0205ccbb05c6f9134",
+      "bytes": 209448
+    },
+    "assets/outreach/confirmed-338.png": {
+      "key": "portraits/e4/e42949bac94094c9f3b56e35047b14ecfa793d68d7de1eb1495514e78e03656d.png",
+      "sha256": "e42949bac94094c9f3b56e35047b14ecfa793d68d7de1eb1495514e78e03656d",
+      "bytes": 202015
+    },
+    "assets/outreach/confirmed-339.png": {
+      "key": "portraits/0f/0f1dad7f6bcd14b67dcd60ae96f57ea632f88f058812ac802026fe1832eded69.png",
+      "sha256": "0f1dad7f6bcd14b67dcd60ae96f57ea632f88f058812ac802026fe1832eded69",
+      "bytes": 307686
+    },
+    "assets/outreach/confirmed-340.jpeg": {
+      "key": "portraits/82/826a23b5f0b190ae117fec6bcf3364fc8b6daaec649ab157cf5f061508d63421.jpeg",
+      "sha256": "826a23b5f0b190ae117fec6bcf3364fc8b6daaec649ab157cf5f061508d63421",
+      "bytes": 789052
     }
   }
 }

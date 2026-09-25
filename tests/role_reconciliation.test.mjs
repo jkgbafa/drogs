@@ -27,7 +27,7 @@ test('all source rows remain accounted for after rank corrections',()=>{
 
 test('female bishop titles follow their recorded organization',()=>{
   for(const person of b.filter(person=>person.gender==='FEMALE')){
-    assert.equal(person.title,person.organization==='UO-FLC190'?'Mother':'Episcopal Sister',person.name);
+    assert.equal(person.title,person.organization==='UD-OLGC'?'Episcopal Sister':'Mother',person.name);
   }
 });
 
@@ -54,4 +54,19 @@ test('merged records retain previous submissions without changing stored origina
   assert.equal(result.previousDeclarations[0].responses.doctrine,'No');
   assert.equal(JSON.stringify(records),original);
   assert.equal(findRecord({'bishop:150':records['bishop:150']},person,'bishop').responses.doctrine,'No');
+});
+
+
+test('confirmed Healing Jesus and FLOW members are Outreach leaders with their logo and preserved identities',()=>{
+ const groups={
+  'Healing Jesus Council':['Prince Charles Addae','Ebo Ankrah','Randy Mills-Thompson','Marcel Aboagye','George Antwi','Lovell Ankrah','Faustina Carla Boateng','Miranda Siweya'],
+  'FLOW Office':['Nely Nina Masuku','Brian Masuku','Leonard Hyde','Joshua Gbafa','Pius Worlano','Darius Phiri','Eniola Ajiga','Joel Obuobisa Jr','Walter Wolle']
+ };
+ for(const [group,names]of Object.entries(groups))for(const name of names){
+  const person=b.find(x=>x.name===name);assert(person,name);assert.equal(person.organization,'OUTREACH');assert.equal(person.outreachGroup,group);assert.equal(person.denominationLogo,'assets/denominations/outreach-org.png');assert(person.image);assert(!p.some(x=>x.name===name));
+ }
+ assert.equal(b.find(x=>x.name==='Joel Obuobisa').organization,'UD-OLGC');
+ assert(recordKeys(b.find(x=>x.name==='Miranda Siweya'),'bishop').includes('pastor:3127'));
+ assert(recordKeys(b.find(x=>x.name==='Darius Phiri'),'bishop').includes('pastor:4699'));
+ assert(p.some(x=>x.code===4746&&x.name==='Joanne Eniola'));
 });
