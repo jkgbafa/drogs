@@ -5,7 +5,6 @@ export function bulkApprovalBlock(record = {}) {
  if (record.status !== 'submitted') return 'Form not submitted';
  if (record.responses?.intention === 'I wish to resign') return 'Resignation request';
  if (record.review === 'Approved') return 'Already approved';
- if (!record.paid) return 'Commitment outstanding';
  if (record.responses?.intention === 'I need to discuss my position' || record.responses?.commitment === 'I need to discuss this before recommitting') return 'Individual review needed';
  if (!['Awaiting submission','Ready for review','In review',undefined,null,''].includes(record.review)) return 'Individual review needed';
  return '';

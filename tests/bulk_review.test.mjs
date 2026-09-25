@@ -3,9 +3,10 @@ import assert from 'node:assert/strict';
 import {bulkApprovalBlock,prepareBulkApproval} from '../src/runtime/bulk-review.js';
 const ready=()=>({status:'submitted',paid:true,review:'In review',responses:{intention:'I wish to continue'},paymentProof:'receipt',reviewNote:'Retain this'});
 const options={timestamp:'2026-09-25T15:00:00Z',batchId:'test-batch'};
-test('bulk approval excludes unsubmitted, unpaid, resigning, approved and individual-review cases',()=>{
+test('bulk approval excludes unsubmitted, resigning, approved and individual-review cases',()=>{
  assert.equal(bulkApprovalBlock(ready()),'');
- for(const patch of [{status:'draft'},{paid:false},{review:'Approved'},{review:'Declined'},{review:'On hold'},{review:'More information requested'},{responses:{intention:'I wish to resign'}},{responses:{intention:'I need to discuss my position'}}])assert(bulkApprovalBlock({...ready(),...patch}));
+ assert.equal(bulkApprovalBlock({...ready(),paid:false}),'');
+ for(const patch of [{status:'draft'},{review:'Approved'},{review:'Declined'},{review:'On hold'},{review:'More information requested'},{responses:{intention:'I wish to resign'}},{responses:{intention:'I need to discuss my position'}}])assert(bulkApprovalBlock({...ready(),...patch}));
 });
 test('batch changes only selected canonical records, preserving receipts, responses, notes and role identity',()=>{
  const r=ready(), records={'bishop:1':r,'pastor:1':ready(),'pastor:2':ready()};

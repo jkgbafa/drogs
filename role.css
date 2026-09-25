@@ -125,3 +125,9 @@ html[data-capture-protection="active"] img{-webkit-user-drag:none;pointer-events
 img.mini-avatar{object-fit:cover;object-position:var(--portrait-x,50%) var(--portrait-y,25%)}
 
 .status-rail.progress-summary{display:flex;flex-wrap:wrap}.status-rail.progress-summary>div{flex:1 1 200px}.status-rail.progress-summary .approved{background:#dff4e9;color:#257d59}
+/* Keep saving and submission separate, with consistent left/right actions. */
+.form-action-help{color:var(--muted);font-size:14px;line-height:1.6;margin:24px 0 14px}
+.form-actions{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.form-actions #save-declaration{margin-right:auto}
+.form-actions #draft-status{font-size:13px;color:var(--teal)}
+@media(max-width:540px){.form-actions{display:grid;grid-template-columns:auto 1fr;gap:14px}.form-actions #submit-declaration{width:auto;justify-self:end;font-size:14px;padding:16px}.form-actions #draft-status{grid-row:2;grid-column:1/-1}.form-actions #save-declaration{grid-column:1;grid-row:1}.form-actions #submit-declaration{grid-column:2;grid-row:1}}

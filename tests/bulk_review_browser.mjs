@@ -9,10 +9,11 @@ const group=candidates.find(p=>candidates.filter(x=>x.denomination===p.denominat
 const selected=candidates.filter(p=>p.denomination===group).slice(0,6);
 const other=candidates.find(p=>p.denomination!==group);
 const bishop=window.BISHOPS.find(p=>p.code===1);
-const record=()=>({status:'submitted',paid:true,review:'In review',submittedAt:'2026-09-25T10:00:00Z',responses:{intention:'I wish to continue'},paymentProofName:'example.png',reviewNote:'Keep this'});
+const record=()=>({status:'submitted',paid:false,review:'In review',submittedAt:'2026-09-25T10:00:00Z',responses:{intention:'I wish to continue'},paymentProofName:'example.png',reviewNote:'Keep this'});
 const saved=Object.fromEntries([...selected,other].map(p=>[`pastor:${p.code}`,record()]));
 saved[`bishop:${bishop.code}`]=record();
 saved[`pastor:${selected[2].code}`].paid=false;
+saved[`pastor:${selected[2].code}`].review='More information requested';
 saved[`pastor:${selected[3].code}`].responses.intention='I wish to resign';
 saved[`pastor:${selected[4].code}`].review='Approved';
 saved[`pastor:${selected[5].code}`].review='On hold';
