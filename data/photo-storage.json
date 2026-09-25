@@ -192,6 +192,16 @@
       "sha256": "ca314b0bbb26ecf92e4063dfba3b794782b515b523800411b31f0371eee1dfa1",
       "bytes": 112131
     },
+    "assets/bishops/confirmed-b69.jpg": {
+      "key": "portraits/fd/fdffa551faf0c20ce8cd9187774d7066a231f253ffc8285b6157854440b0a02b.jpg",
+      "sha256": "fdffa551faf0c20ce8cd9187774d7066a231f253ffc8285b6157854440b0a02b",
+      "bytes": 65032
+    },
+    "assets/bishops/eddie-fabin-white.png": {
+      "key": "portraits/d8/d8c858d3592c83b380a4507b886e93dd28f5174634c6b206e03211cd3c446e5d.png",
+      "sha256": "d8c858d3592c83b380a4507b886e93dd28f5174634c6b206e03211cd3c446e5d",
+      "bytes": 1253019
+    },
     "assets/bishops/matched-10.webp": {
       "key": "portraits/c4/c47a220daf57e8774a61d025cfe31e352641814543ddf396fe4d2b0be982247f.webp",
       "sha256": "c47a220daf57e8774a61d025cfe31e352641814543ddf396fe4d2b0be982247f",
@@ -1122,11 +1132,6 @@
       "sha256": "2564be45a304540cd01deaae55760074a695083d4a1347b962574f2edff06b87",
       "bytes": 28098
     },
-    "assets/bishops/matched-41.webp": {
-      "key": "portraits/d8/d8dfba4a8f55b1cf84c5bdcfe38a3de8e49277a3e615714c60cf7168b1c2b8da.webp",
-      "sha256": "d8dfba4a8f55b1cf84c5bdcfe38a3de8e49277a3e615714c60cf7168b1c2b8da",
-      "bytes": 65328
-    },
     "assets/bishops/matched-42.webp": {
       "key": "portraits/d4/d46ed55372b8330297157ed8e81df5c5bea478b5b30bf135b0a1992a50abb354.webp",
       "sha256": "d46ed55372b8330297157ed8e81df5c5bea478b5b30bf135b0a1992a50abb354",
@@ -1251,11 +1256,6 @@
       "key": "portraits/5a/5a8b500ec97c6badf85b647e2c33180a321aef44b260d53bac778d44ac85b3ef.webp",
       "sha256": "5a8b500ec97c6badf85b647e2c33180a321aef44b260d53bac778d44ac85b3ef",
       "bytes": 27260
-    },
-    "assets/bishops/matched-69.webp": {
-      "key": "portraits/a2/a237ce27190fb40c510c541b3900055d251951f9e43c8adda83fac18e94278b8.webp",
-      "sha256": "a237ce27190fb40c510c541b3900055d251951f9e43c8adda83fac18e94278b8",
-      "bytes": 69024
     },
     "assets/bishops/matched-7.webp": {
       "key": "portraits/68/68c43473379b286391ff81173226077f748dd9295efde82bf0a91c144bec4805.webp",
@@ -1411,6 +1411,16 @@
       "key": "portraits/f0/f098d9444f598b9321d34cace7738843e28d9958b1f33e64cf8aa62558017dad.webp",
       "sha256": "f098d9444f598b9321d34cace7738843e28d9958b1f33e64cf8aa62558017dad",
       "bytes": 85218
+    },
+    "assets/pastors/confirmed-2827.jpg": {
+      "key": "portraits/4a/4a3ef2231dcb4a0320185b013b655b19063d83d18751c445eaddbbdd497bef9b.jpg",
+      "sha256": "4a3ef2231dcb4a0320185b013b655b19063d83d18751c445eaddbbdd497bef9b",
+      "bytes": 38547
+    },
+    "assets/pastors/confirmed-4925.jpg": {
+      "key": "portraits/b7/b785c433ca7396a1a011abbd43faaf0dcd9daafac9726f25f0739bd9372c0a89.jpg",
+      "sha256": "b785c433ca7396a1a011abbd43faaf0dcd9daafac9726f25f0739bd9372c0a89",
+      "bytes": 77140
     },
     "assets/pastors/matched-1.webp": {
       "key": "portraits/42/423fa28fbe79a482aeb7afdd7d91827feb5a7453b75f0d22d1846b40b04261bd.webp",

@@ -146,3 +146,6 @@ html[data-capture-protection="active"] img{-webkit-user-drag:none;pointer-events
 .denomination-totals i{font-style:normal}
 @media(max-width:1000px){.denomination-heading{grid-template-columns:1fr}.denomination-totals{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:540px){.denomination-identity{gap:16px}.denomination-totals button{min-width:0;padding:16px}.denomination-totals strong{font-size:44px}.record-portrait{width:100%;max-width:420px;justify-self:center}}
+
+.record-title .record-person-title{font-size:14px;letter-spacing:2px;font-weight:750;color:#597b83;margin:0 0 14px;text-transform:uppercase}
+.record-title .record-country{font-size:clamp(24px,2.2vw,32px);line-height:1.2;font-weight:650;margin:20px 0;color:#617681}

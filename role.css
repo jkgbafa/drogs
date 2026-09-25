@@ -123,3 +123,5 @@ html[data-capture-protection="active"] img{-webkit-user-drag:none;pointer-events
 .question-follow-up{border:0;padding:0;margin:24px 0 0;min-width:0}.question-follow-up[hidden]{display:none}.question-follow-up>label,.follow-up-label{display:block;font-size:14px;font-weight:650;color:var(--ink);margin-bottom:10px}.count-field{max-width:220px}.question-follow-up .field{margin-top:0}
 
 img.mini-avatar{object-fit:cover;object-position:var(--portrait-x,50%) var(--portrait-y,25%)}
+
+.status-rail.progress-summary{display:flex;flex-wrap:wrap}.status-rail.progress-summary>div{flex:1 1 200px}.status-rail.progress-summary .approved{background:#dff4e9;color:#257d59}
