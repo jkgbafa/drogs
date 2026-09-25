@@ -49,6 +49,13 @@
 .result-count { margin: -6px 0 12px; color: var(--muted); font-size: 10px; }
 .login-card .logo, .side-brand img { object-fit: contain; background: transparent; }
 
+html[data-capture-protection="active"],html[data-capture-protection="active"] body{-webkit-user-select:none;user-select:none}
+html[data-capture-protection="active"] img{-webkit-user-drag:none;pointer-events:none}
+.privacy-shield{display:none;position:fixed;inset:0;z-index:99999;background:#07181d;color:#fff;place-items:center;align-content:center;gap:12px;text-align:center}
+.privacy-shield img{width:76px;height:92px;object-fit:contain}.privacy-shield strong{font-size:22px;letter-spacing:3px}.privacy-shield span{color:#9fb6b9;font-size:12px}
+body.privacy-hidden>*:not(.privacy-shield){visibility:hidden!important}body.privacy-hidden .privacy-shield{display:grid;visibility:visible!important}
+@media print{body>*{display:none!important}body::after{content:"D.R.O.G.S — private record";display:grid;min-height:100vh;place-items:center}}
+
 @media (max-width: 720px) {
   .admin-role-switch { max-width: none; }
   .admin-role-switch button { padding: 12px 8px; }

@@ -1,37 +1,33 @@
-# Pastoral Renewal
+# D.R.O.G.S
 
-Annual renewal portal for bishops and pastors, with a separate renewal-office workspace at `/admin/`.
+Private annual commitment portal for church leaders and pastors, with a separate administration workspace at `/admin/`.
 
 ## Current directory
 
-- 69 bishops with verified red-jacket portraits and $100 annual fees
-- 4,647 pastors imported from the `pastor` tab in `MASTER-2`, with $50 annual fees
-- Separate numeric access-code sequences for bishops and pastors
-- Pastor records contain only renewal-directory fields: name, denomination, country, branch, appointment year and ordination year
+- 193 leaders from the supplied master workbook
+- 176 confidently matched portraits from every supplied image folder
+- 4,505 pastor records
+- Separate numeric access-code sequences for Bishops and Pastors
+- $100 leader fee and $50 pastor fee
 
-## Renewal flow
+## Participant flow
 
 1. Choose Bishops or Pastors.
-2. Enter the personal numeric code.
-3. Review the matched profile.
-4. Complete the 10-question annual declaration.
-5. Choose a payment method and confirm the annual fee.
-6. Receive a printable personal receipt.
-7. Follow the church-review status from the profile.
+2. Enter the private numeric code.
+3. Review the matched name and portrait.
+4. Complete any applicable governance questions.
+5. Continue to payment without requiring every question.
+6. Receive a D.R.O.G.S receipt.
 
-## Renewal office
+## Administration
 
-Open `/admin/` and enter `1234`. The workspace provides role, organization, status and payment filters; table and portrait views; search; totals; and a review drawer for every record.
+Open `/admin/` and enter the current access code. The dashboard supports role switching, status filters, payment state, portrait view, searches, and church decisions.
 
-## Data and backend path
+The source workbook remains the master roster. This static GitHub Pages build stores activity in the current browser. `database/schema.sql` defines the production SQL structure for shared declarations, payments, and church reviews when a hosted API is connected.
 
-The master Google Sheet remains the source roster. This static GitHub Pages build stores completed renewals in the current browser. `database/schema.sql` defines the production SQL structure for shared submissions, payments and church reviews when a hosted API is connected.
+## Data scripts
 
-## Rebuild directory data
+- `scripts/build_data.py` prepares the leader portraits and directory.
+- `scripts/build_pastor_data.py` prepares the pastor directory.
 
-- `scripts/build_data.py` prepares the bishop portraits and directory.
-- `scripts/build_pastor_data.py` imports the pastor directory from the local master workbook while excluding phone numbers, email addresses and street addresses.
-
-## Browser verification
-
-`tests/browser_qa.mjs` checks role selection, code-to-person matching, the renewal form, payment receipt, admin access, filters, portrait directory and mobile layout.
+`tests/browser_qa.mjs` checks access-code mapping, optional questionnaire submission, payment, receipt, admin access, filters, portrait directory, privacy controls, and mobile layout.

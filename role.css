@@ -64,10 +64,22 @@
 .receipt-avatar.avatar { width: 78px; height: 96px; border-radius: 13px; display: flex; font-size: 23px; letter-spacing: 0; flex: 0 0 auto; }
 .logo-crop { overflow: visible; }
 .logo-crop img { position: static; width: 100%; height: 100%; object-fit: contain; }
-.seal-crop { display: block; width: 75px; height: 75px; margin: 0 auto 16px; }
-.seal-crop img { width: 100%; height: 100%; object-fit: contain; }
+.receipt-logo { display: block; width: 86px; height: 104px; margin: 0 auto 18px; object-fit: contain; object-position: center; }
+.designation { display: inline-block; margin: -6px 0 20px; padding: 7px 11px; border-radius: 999px; background: #e3f2ef; color: #087b7d; font-size: 11px; font-weight: 800; letter-spacing: .7px; }
+.transfer-apps{margin-top:28px;padding-top:28px;border-top:1px solid #dce5e6}.transfer-heading{display:flex;justify-content:space-between;align-items:end;gap:18px}.transfer-heading h2{font-size:30px;letter-spacing:1px;margin:7px 0 0}.transfer-heading h2 small{font-size:11px;letter-spacing:1px;color:#6d7c89}.transfer-heading button{border:1px solid #d6e0e2;background:#fff;border-radius:10px;padding:10px 12px;color:#567078;font-size:11px;font-weight:750}.transfer-apps>p{font-size:12px;color:#6c7b89;margin:12px 0 18px}.payment-app-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}.payment-app{min-height:58px;padding:12px;display:flex;align-items:center;justify-content:space-between;gap:8px;border:1px solid #dfe6e7;border-radius:11px;background:#f8faf9;color:#172436;text-decoration:none;font-size:12px;font-weight:800;transition:.18s ease}.payment-app:hover{border-color:#4ebbb5;background:#edf8f6;transform:translateY(-1px)}.payment-app i{font-style:normal;color:#0d8587}
+
+html[data-capture-protection="active"],html[data-capture-protection="active"] body{-webkit-user-select:none;user-select:none}
+html[data-capture-protection="active"] img{-webkit-user-drag:none;pointer-events:none}
+.privacy-shield{display:none;position:fixed;inset:0;z-index:99999;background:#07181d;color:#fff;place-items:center;align-content:center;gap:12px;text-align:center}
+.privacy-shield img{width:76px;height:92px;object-fit:contain}
+.privacy-shield strong{font-size:22px;letter-spacing:3px}.privacy-shield span{color:#9fb6b9;font-size:12px}
+body.privacy-hidden>*:not(.privacy-shield){visibility:hidden!important}body.privacy-hidden .privacy-shield{display:grid;visibility:visible!important}
+@media print{body>*{display:none!important}body::after{content:"D.R.O.G.S — private record";display:grid;min-height:100vh;place-items:center}}
 
 @media (max-width: 540px) {
   .role-switch { margin-top: 20px; }
   .role-switch button { padding: 13px 8px; font-size: 13px; }
+  .payment-app-grid { grid-template-columns: repeat(2,1fr); }
+  .transfer-heading { align-items: flex-start; }
+  .transfer-heading h2 { font-size: 24px; }
 }

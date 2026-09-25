@@ -2,7 +2,7 @@
 
 Source reviewed: *The Gift of Governments: A Bishop’s Governing Handbook*, Dag Heward-Mills, 2nd edition (2022), from the user's connected Google Drive.
 
-The renewal form uses ten areas drawn from the book:
+The annual declaration uses ten areas drawn from the book:
 
 1. Intention to continue or resign: willingness is treated as distinct from mere obedience (chapter 44).
 2. Personal standing and readiness: accountable leadership, self-awareness, discipline and the need for help (chapter 24).

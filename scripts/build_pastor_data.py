@@ -4,8 +4,8 @@ import json
 import re
 
 
-SOURCE = Path("/Users/joshuagbafa/Downloads/Bishop's project/Data/MASTER-2.xlsx")
-ROOT = Path("/Users/joshuagbafa/Documents/Codex/pastoral-renewal")
+SOURCE = Path("/Users/joshuagbafa/Downloads/PASTORS DATA.xlsx")
+ROOT = Path(__file__).resolve().parents[1]
 
 
 def clean(value):
@@ -24,7 +24,7 @@ def name_case(value):
 
 
 workbook = load_workbook(SOURCE, read_only=True, data_only=True)
-sheet = workbook["pastor"]
+sheet = workbook.active
 headers = [clean(cell.value) for cell in sheet[1]]
 positions = {header: index for index, header in enumerate(headers)}
 
@@ -32,13 +32,20 @@ entries = []
 seen = set()
 for row in sheet.iter_rows(min_row=2, values_only=True):
     row = tuple(row) + (None,) * max(0, len(headers) - len(row))
-    name = name_case(row[positions["Full Name"]])
-    denomination = clean(row[positions["Denomination"]])
-    branch = name_case(row[positions["Branch"]])
+    is_leader = (
+        "BISHOP" in clean(row[positions["ADMINRANK"]]).upper()
+        or clean(row[positions["STATUSRANK"]]).upper() == "BISHOP"
+        or bool(row[positions["YEARCONSECRATED"]])
+    )
+    if is_leader:
+        continue
+    name = name_case(row[positions["FULLNAME"]])
+    denomination = clean(row[positions["DENOMINATION"]])
+    branch = name_case(row[positions["BRANCH"]])
     if "FIRST LOVE" in denomination.upper():
         denomination = "PASTORAL NETWORK"
     branch = re.sub(r"(?i)first\s*love", "Central Church", branch)
-    country = name_case(row[positions["Country"]])
+    country = name_case(row[positions["COUNTRY"]])
     if not name or not denomination:
         continue
     key = (re.sub(r"[^a-z]", "", name.lower()), denomination.lower(), branch.lower(), country.lower())
@@ -53,8 +60,8 @@ for row in sheet.iter_rows(min_row=2, values_only=True):
         "branch": branch,
         "image": None,
         "amount": 50,
-        "yearAppointed": clean(row[positions["Year Appointed"]]),
-        "yearOrdained": clean(row[positions["Year Ordained"]]),
+        "yearAppointed": clean(row[positions["YEARAPPOINTED"]]),
+        "yearOrdained": clean(row[positions["YEARORDAINED"]]),
     })
 
 (ROOT / "data" / "pastors.js").write_text(

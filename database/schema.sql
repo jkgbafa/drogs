@@ -11,19 +11,19 @@ create table people (
   unique (role, access_code)
 );
 
-create table renewal_cycles (
+create table annual_cycles (
   id bigint generated always as identity primary key,
-  renewal_year integer not null unique,
+  cycle_year integer not null unique,
   bishop_fee numeric(10,2) not null,
   pastor_fee numeric(10,2) not null,
   opens_at timestamptz,
   closes_at timestamptz
 );
 
-create table renewals (
+create table declarations (
   id bigint generated always as identity primary key,
   person_id bigint not null references people(id),
-  cycle_id bigint not null references renewal_cycles(id),
+  cycle_id bigint not null references annual_cycles(id),
   status text not null default 'not_started' check (status in ('not_started', 'draft', 'submitted')),
   answers jsonb not null default '{}'::jsonb,
   submitted_at timestamptz,
@@ -33,7 +33,7 @@ create table renewals (
 
 create table payments (
   id bigint generated always as identity primary key,
-  renewal_id bigint not null references renewals(id),
+  declaration_id bigint not null references declarations(id),
   amount numeric(10,2) not null,
   currency text not null default 'USD',
   method text,
@@ -44,7 +44,7 @@ create table payments (
 
 create table reviews (
   id bigint generated always as identity primary key,
-  renewal_id bigint not null references renewals(id),
+  declaration_id bigint not null references declarations(id),
   status text not null default 'awaiting_submission',
   internal_note text,
   reviewed_by text,
@@ -53,5 +53,5 @@ create table reviews (
 );
 
 create index people_role_org_idx on people(role, organization);
-create index renewals_status_idx on renewals(cycle_id, status);
+create index declarations_status_idx on declarations(cycle_id, status);
 create index payments_paid_at_idx on payments(paid_at);

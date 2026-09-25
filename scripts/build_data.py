@@ -1,78 +1,190 @@
 from pathlib import Path
 from PIL import Image, ImageOps
-import json, re, shutil
+from openpyxl import load_workbook
+from difflib import SequenceMatcher
+import json
+import re
+import shutil
+import unicodedata
+
 
 SOURCE = Path("/Users/joshuagbafa/Downloads/Bishop's project/BISHOPS PICTURES")
-ROOT = Path("/Users/joshuagbafa/Documents/Codex/pastoral-renewal")
+WORKBOOK = Path("/Users/joshuagbafa/Downloads/PASTORS DATA.xlsx")
+ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "assets" / "bishops"
 OUT.mkdir(parents=True, exist_ok=True)
 for old_image in OUT.glob("*.jpg"):
     old_image.unlink()
 
-folders = [
-    (SOURCE / "UD AF", "United Denominations", "Africa"),
-    (SOURCE / "UD EU", "United Denominations", "Europe"),
-    (SOURCE / "ESCHATOS INT", "Eschatos International", "International"),
-    (SOURCE / "FIRST LOVE BISHOPS RED JACKET", "Episcopal Council", "International"),
-]
 
-def clean_name(filename):
-    name = Path(filename).stem
-    name = re.sub(r"(?i)^copy of\s+", "", name)
-    name = re.sub(r"(?i)\s*[-–]?\s*red\s*jacket.*$", "", name)
-    name = re.sub(r"(?i)\s+red(?:\s*\(.*\))?$", "", name)
-    name = re.sub(r"(?i)\b(bishop|bishops|bs|sister|es)\b", "", name)
-    name = re.sub(r"[_()\d]+", " ", name)
-    name = re.sub(r"([a-z])([A-Z])", r"\1 \2", name)
+def clean(value):
+    return re.sub(r"\s+", " ", str(value or "")).strip()
+
+
+def name_case(value):
     words = []
-    for part in name.split():
+    for part in clean(value).split():
         words.append("-".join(piece.capitalize() for piece in part.split("-")))
     return " ".join(words)
 
-seen = set()
-entries = []
-for folder, organization, region in folders:
-    if not folder.exists():
+
+def normalize(value):
+    value = unicodedata.normalize("NFKD", clean(value)).encode("ascii", "ignore").decode().upper()
+    value = re.sub(r"\[[^]]+\]|\([^)]*\)|\.(JPG|JPEG|PNG|HEIF|HEIC)$", " ", value)
+    value = re.sub(r"COPY OF|RED\s*JACKET|WHATSAPP IMAGE|PHOTO|PICTURES|PICTURE|PHOTOS", " ", value)
+    value = re.sub(r"\b(BISHOP|BISHOPS|BS|REV|REVEREND|PASTOR|PS|SISTER|ES|DR|PROPHET|MOTHER|JNR|JR)\b", " ", value)
+    value = re.sub(r"\b(IMG|DSC|MEDIA)\b|\d+", " ", value)
+    return " ".join(re.findall(r"[A-Z]+", value))
+
+
+def score(name, label):
+    a, b = normalize(name), normalize(label)
+    if not a or not b:
+        return 0
+    if a == b:
+        return 1
+    if a.replace(" ", "") == b.replace(" ", ""):
+        return .99
+    at, bt = set(a.split()), set(b.split())
+    overlap = at & bt
+    if len(overlap) >= 2 and (at <= bt or bt <= at):
+        return .94
+    token_score = 2 * len(overlap) / (len(at) + len(bt))
+    sequence_score = SequenceMatcher(None, a, b).ratio()
+    if len(overlap) >= 2:
+        token_score += .08
+    return min(.93, max(token_score, sequence_score))
+
+
+def labels_for(path):
+    labels = [path.stem]
+    parent = path.parent
+    while parent != SOURCE and len(labels) < 5:
+        labels.append(parent.name)
+        parent = parent.parent
+    return labels
+
+
+def usable_images():
+    images = []
+    for path in SOURCE.rglob("*"):
+        if path.suffix.lower() not in {".jpg", ".jpeg", ".png", ".heif", ".heic"}:
+            continue
+        try:
+            with Image.open(path) as image:
+                image.verify()
+        except Exception:
+            continue
+        images.append({"path": path, "labels": labels_for(path)})
+    return images
+
+
+workbook = load_workbook(WORKBOOK, read_only=True, data_only=True)
+sheet = workbook.active
+rows = iter(sheet.iter_rows(values_only=True))
+headers = [clean(value) for value in next(rows)]
+people = []
+for values in rows:
+    row = dict(zip(headers, values))
+    is_leader = (
+        "BISHOP" in clean(row.get("ADMINRANK")).upper()
+        or clean(row.get("STATUSRANK")).upper() == "BISHOP"
+        or bool(row.get("YEARCONSECRATED"))
+    )
+    if not is_leader or not row.get("FULLNAME"):
         continue
-    for source in sorted(folder.iterdir()):
-        if source.suffix.lower() not in {".jpg", ".jpeg", ".png", ".heif", ".heic"}:
-            continue
-        if folder.name != "FIRST LOVE BISHOPS RED JACKET" and not re.search(r"(?i)\bred\b|red.?jacket", source.name):
-            continue
-        name = clean_name(source.name)
-        key = re.sub(r"[^a-z]", "", name.lower())
-        if len(name) < 5 or key in seen or name.lower() == "red jacket" or re.fullmatch(r"[a-f\d -]{24,}", name.lower()):
-            continue
+    denomination = clean(row.get("DENOMINATION"))
+    source_group = "first_love" if "FIRST LOVE" in denomination.upper() else "ud"
+    if "FIRST LOVE" in denomination.upper():
+        denomination = "PASTORAL NETWORK"
+    branch = re.sub(r"(?i)first\s*love", "Central Church", name_case(row.get("BRANCH")))
+    people.append({
+        "sourceId": clean(row.get("PASTORID")),
+        "name": name_case(row.get("FULLNAME")),
+        "organization": denomination or "Leadership Network",
+        "region": name_case(row.get("COUNTRY")) or "International",
+        "branch": branch,
+        "sourceStatus": clean(row.get("PASTORSTATUS")) or "ACTIVE",
+        "yearConsecrated": clean(row.get("YEARCONSECRATED")),
+        "gender": clean(row.get("GENDER")).upper(),
+        "sourceGroup": source_group,
+    })
+
+photos = usable_images()
+report = []
+entries = []
+for person in people:
+    candidates = []
+    for photo in photos:
+        best = max((score(person["name"], label) for label in photo["labels"]), default=0)
+        if best >= .58:
+            candidates.append((best, photo))
+    candidates.sort(key=lambda item: item[0], reverse=True)
+    chosen = candidates[0] if candidates and candidates[0][0] >= .72 else None
+    first_love_candidates = [
+        item for item in candidates
+        if "FIRST LOVE BISHOPS RED JACKET" in str(item[1]["path"]).upper()
+    ]
+    first_love_candidates.sort(key=lambda item: item[0], reverse=True)
+    first_love_by_folder = bool(first_love_candidates and first_love_candidates[0][0] >= .72)
+    if first_love_by_folder:
+        chosen = first_love_candidates[0]
+    image_path = None
+    if chosen:
+        source = chosen[1]["path"]
         try:
             with Image.open(source) as image:
                 image = ImageOps.exif_transpose(image).convert("RGB")
-                image.thumbnail((900, 1100), Image.Resampling.LANCZOS)
-                canvas = Image.new("RGB", (720, 900), "#e9eceb")
                 scale = max(720 / image.width, 900 / image.height)
                 resized = image.resize((round(image.width * scale), round(image.height * scale)), Image.Resampling.LANCZOS)
-                left = (resized.width - 720) // 2
+                left = max(0, (resized.width - 720) // 2)
                 top = max(0, min((resized.height - 900) // 5, resized.height - 900))
-                canvas.paste(resized.crop((left, top, left + 720, top + 900)))
+                crop = resized.crop((left, top, left + 720, top + 900))
+                filename = f"{len(entries) + 1:03d}.jpg"
+                crop.save(OUT / filename, "JPEG", quality=88, optimize=True, progressive=True)
+                image_path = f"assets/bishops/{filename}"
         except Exception:
-            continue
-        seen.add(key)
-        code = len(entries) + 1
-        filename = f"{code:03d}.jpg"
-        canvas.save(OUT / filename, "JPEG", quality=88, optimize=True, progressive=True)
-        entries.append({
-            "code": code,
-            "name": name,
-            "organization": organization,
-            "region": region,
-            "image": f"assets/bishops/{filename}",
-            "amount": 100,
-        })
+            chosen = None
+    source_image = str(chosen[1]["path"].relative_to(SOURCE)) if chosen else ""
+    first_love = first_love_by_folder or person["sourceGroup"] == "first_love"
+    honorific = "Mother" if first_love and person["gender"] == "FEMALE" else ""
+    designation = "UO-FLC190" if first_love else "UD-OLGC" if person["gender"] == "FEMALE" else ""
+    code = len(entries) + 1
+    entries.append({
+        "code": code,
+        "name": person["name"],
+        "organization": person["organization"],
+        "region": person["region"],
+        "branch": person["branch"],
+        "image": image_path,
+        "amount": 100,
+        "sourceStatus": person["sourceStatus"],
+        "yearConsecrated": person["yearConsecrated"],
+        "honorific": honorific,
+        "designation": designation,
+    })
+    report.append({
+        "code": code,
+        "sourceId": person["sourceId"],
+        "name": person["name"],
+        "matched": bool(image_path),
+        "score": round(chosen[0], 3) if chosen else None,
+        "sourceImage": source_image or None,
+        "honorific": honorific,
+        "designation": designation,
+        "otherCandidates": [
+            {"score": round(item[0], 3), "path": str(item[1]["path"].relative_to(SOURCE))}
+            for item in candidates[1:4]
+        ],
+    })
+
+(ROOT / "data" / "bishops.js").write_text(
+    "window.BISHOPS = " + json.dumps(entries, ensure_ascii=False, separators=(",", ":")) + ";\n"
+)
+(ROOT / "data" / "leader-photo-match-report.json").write_text(json.dumps(report, indent=2))
 
 logo_source = Path("/Users/joshuagbafa/Downloads/Bishop's project/Brand/IMG_6513.jpg")
-(ROOT / "assets").mkdir(exist_ok=True)
 shutil.copy2(logo_source, ROOT / "assets" / "mitre.jpg")
 
-js = "window.BISHOPS = " + json.dumps(entries, ensure_ascii=False, separators=(",", ":")) + ";\n"
-(ROOT / "data").mkdir(exist_ok=True)
-(ROOT / "data" / "bishops.js").write_text(js)
-print(json.dumps({"bishops": len(entries), "first": entries[:3], "last": entries[-1:]}, indent=2))
+matched = sum(1 for item in entries if item["image"])
+print(json.dumps({"leaders": len(entries), "matchedPortraits": matched, "needsPortraitReview": len(entries) - matched, "availableImages": len(photos)}, indent=2))
