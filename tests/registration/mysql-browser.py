@@ -78,7 +78,8 @@ with sync_playwright() as p:
         expect(page.get_by_role('heading',name='Browser integration',exact=True)).to_be_visible()
         page.get_by_role('button',name='Revoke Browser integration',exact=True).click()
         page.get_by_role('button',name='Confirm revoke',exact=True).click()
-        expect(page.get_by_text('API key revoked.',exact=True)).to_be_visible()
+        expect(page.get_by_role('status')).to_contain_text('API key revoked.')
+        expect(page.get_by_role('button',name='Revoke Browser integration',exact=True)).not_to_be_visible()
         assert errors == [], errors
         print('MySQL browser flow passed: emailed sign-in, R2 portrait, draft reload, submission, mobile layout and admin access to shared registration.')
     except Exception:
