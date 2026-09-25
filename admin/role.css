@@ -47,6 +47,7 @@
 .card-photo { width: 58px; height: 72px; border-radius: 10px; object-fit: cover; object-position: top; font-size: 14px; }
 .drawer-photo { width: 93px; height: 115px; object-fit: cover; object-position: top; border-radius: 14px; font-size: 22px; }
 .result-count { margin: -6px 0 12px; color: var(--muted); font-size: 10px; }
+.login-card .logo, .side-brand img { object-fit: contain; background: transparent; }
 
 @media (max-width: 720px) {
   .admin-role-switch { max-width: none; }

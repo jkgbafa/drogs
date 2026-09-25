@@ -62,8 +62,10 @@
 .profile-portrait.avatar { font-size: 84px; }
 .mini-avatar.avatar { width: 52px; height: 64px; border-radius: 10px; display: flex; font-size: 16px; letter-spacing: 0; flex: 0 0 auto; }
 .receipt-avatar.avatar { width: 78px; height: 96px; border-radius: 13px; display: flex; font-size: 23px; letter-spacing: 0; flex: 0 0 auto; }
-.seal-crop { position: relative; display: block; width: 75px; height: 75px; margin: 0 auto 16px; overflow: hidden; }
-.seal-crop img { position: absolute; width: 350px; max-width: none; left: -137px; top: -70px; }
+.logo-crop { overflow: visible; }
+.logo-crop img { position: static; width: 100%; height: 100%; object-fit: contain; }
+.seal-crop { display: block; width: 75px; height: 75px; margin: 0 auto 16px; }
+.seal-crop img { width: 100%; height: 100%; object-fit: contain; }
 
 @media (max-width: 540px) {
   .role-switch { margin-top: 20px; }
