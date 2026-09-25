@@ -1,16 +1,18 @@
 # DROGS annual registration
 
-This branch replaces the renewal questionnaire with account-based annual registration, bishop-submitted pastor lists and an Unclaimed review queue. The previous portal remains at `https://jkgbafa.github.io/drogs/` and is preserved on `codex/renewal-archive-2026-09-25` in `jkgbafa/drogs`.
+This branch replaces the renewal questionnaire with account-based annual registration, bishop-submitted pastor lists and an Unclaimed review queue. The previous portal remains at `https://jkgbafa.github.io/drogs/` and is preserved on `codex/renewal-archive-2026-09-25` in `theflowchurch/drogs`.
 
 ## Current delivery
 
-The published preview operates as a clearly labelled **browser-only demo** until Supabase and email delivery are configured. The entrance password is still **1234**, on both the portal and `/admin/`. Email addresses select demo accounts; no message is sent and this is not secure authentication. Do not use real registration information in the demo. Demo uploads are stored in IndexedDB, while registrations use `drogs-registration-v1`. Neither the old `drogs-2027` key nor the reconciled legacy source data is read or overwritten by the new flow.
+The Hostinger deployment uses **MySQL + private Cloudflare R2**, with registration at `https://drogsdagministry.org/` and administration at `/admin`. See [HOSTINGER.md](HOSTINGER.md) for the deployment steps and [HOSTINGER.env.example](HOSTINGER.env.example) for all environment variables. The server integration is implemented; production credentials, admin emails, migrations and live connection checks must be completed before rollout.
+
+The published preview operates as a clearly labelled **browser-only demo** separately from the Hostinger backend. The entrance password is still **1234**, on both the portal and `/admin/`. Email addresses select demo accounts; no message is sent and this is not secure authentication. Do not use real registration information in the demo. Demo uploads are stored in IndexedDB, while registrations use `drogs-registration-v1`. Neither the old `drogs-2027` key nor the reconciled legacy source data is read or overwritten by the new flow.
 
 The application starts with **zero registrations**. The existing bishop names are reference choices only. The previous photos and datasets remain in the repository; they do not count as completed registrations. No existing account is silently created or approved.
 
 ## Registration and annual lists
 
-- New and returning members enter an email address. Connected mode uses Supabase email OTP verification.
+- New and returning members enter an email address. Hostinger mode verifies one-time email codes through SMTP and stores accounts in MySQL. The optional Supabase adapter is retained.
 - Required details: role, first name, last name, email, phone, date of birth, country, city, organization, denomination where applicable, and an official-attire photo. Pastors select a bishop, or enter a name if the bishop is missing.
 - Organizations: First Love, United Denominations, DHMM, FLOW, Healing Jesus Campaign. Outreach is no longer a registration option.
 - Drafts can be saved; applicants review details and confirm accuracy before submission.
@@ -23,7 +25,7 @@ The application starts with **zero registrations**. The existing bishop names ar
 - Removal requires Transferred, Resigned, Dismissed or Other (with explanation). Records and payments are retained, and removed pastors leave the active directory. Complex reinstatement/transfer corrections should be handled by the office; the present UI does not edit already submitted registration fields.
 - Only the office can open the following annual cycle. Historical registration status is preserved; accounts persist; fresh registrations and payment records are required. Prior annual lists and payments are not automatically carried forward.
 
-## Backend setup when keys are available
+## Optional Supabase backend (not the Hostinger MySQL setup)
 
 1. Create a Supabase project. Apply `supabase/migrations/202609250002_registration.sql`, `supabase/migrations/202609250003_registration_details.sql` and `supabase/registration-reference-seed.sql`. A fresh registration-only project does not need the older API migration. Neither script erases existing data. The seed contains reference names, titles, organization labels and photo paths, not personal contacts or registrations.
 2. Enable email authentication. In the Magic Link template include `{{ .Token }}` to send the one-time code used by this interface. Configure custom SMTP and appropriate delivery limits. Supabase’s default sender only sends to project-team addresses and is not sufficient for public registration.
@@ -34,7 +36,7 @@ The application starts with **zero registrations**. The existing bishop names ar
 
 SQL writes go through `registration_action` with verified identity and role checks. Clients have no direct read/write privileges on registration tables. `registration_snapshot` scopes records to the applicant, selected bishop or office. Private images use a dedicated `registration-media` bucket with 5 MB JPEG/PNG/WebP limits and expiring signed URLs. Only the owner and office can read receipts; the selected bishop can read submitted pastor portraits. Legacy public R2 portraits remain untouched; new private registration images use Supabase Storage to keep authorization enforceable without requiring R2 service credentials in the browser. If its free storage allowance is exceeded, a server-side R2 upload/signing service or a larger storage allowance will be needed.
 
-The entrance PIN is only a familiar navigation gate. In connected mode it cannot access the database or grant office privileges. Accounts sign out after 30 minutes without keyboard/pointer activity. SQL locking makes roster additions, claims and payment decisions atomic and prevents stale actions from overwriting already completed decisions.
+The entrance PIN is used only in the browser demo. Connected mode starts with verified email sign-in; the URL cannot grant office privileges. Accounts sign out after 30 minutes without keyboard/pointer activity. SQL locking makes roster additions, claims and payment decisions atomic and prevents stale actions from overwriting already completed decisions.
 
 ## Develop and verify
 
@@ -42,7 +44,7 @@ The entrance PIN is only a familiar navigation gate. In connected mode it cannot
 npm ci
 npm test                 # domain rules and actual PostgreSQL via PGlite
 npm run test:legacy      # checks for preserved legacy modules/data
-NEXT_PUBLIC_BASE_PATH=/drogs-registration npm run build
+NEXT_PUBLIC_REGISTRATION_BACKEND=demo NEXT_PUBLIC_BASE_PATH=/drogs-registration npm run build
 PORT=4207 NEXT_PUBLIC_BASE_PATH=/drogs-registration npm run serve
 # In another terminal, with Python Playwright installed:
 DROGS_BASE_URL=http://127.0.0.1:4207/drogs-registration python3 tests/registration/browser.py
@@ -52,6 +54,6 @@ Browser checks use isolated browser storage and sample accounts, preserving the 
 
 ## Separate preview publishing
 
-The source branch is `codex/annual-registration` in `jkgbafa/drogs`. CI validates it and produces a `registration-site` artifact; it has no permissions to replace the old Pages site. The separate `jkgbafa/drogs-registration` repository serves only the tested static export at `https://jkgbafa.github.io/drogs-registration/`. It contains no legacy directories or source contact data. Publish a tested `out/` build to that repository’s `main` branch, including `.nojekyll`. Only the mitre and two attire examples are copied into the public assets; original portrait files remain in the source repository.
+The source branch is `codex/annual-registration` in `theflowchurch/drogs`. CI validates it and produces a `registration-site` artifact; it has no permissions to replace the old Pages site. The separate `jkgbafa/drogs-registration` repository serves only the tested static export at `https://jkgbafa.github.io/drogs-registration/`. It contains no legacy directories or source contact data. Publish a tested `out/` build to that repository’s `main` branch, including `.nojekyll`. Only the mitre and two attire examples are copied into the public assets; original portrait files remain in the source repository.
 
 The registration form replaces Church with an organization-dependent Denomination dropdown; its complete choices are in [DENOMINATIONS.md](DENOMINATIONS.md). First Love includes its main church and the six supplied affiliated denominations. DHMM, FLOW and Healing Jesus Campaign disable and clear the denomination. The review screen places the applicant’s image beside the role-specific example and requires an explicit attire acknowledgement before submission, enforced by both the local model and SQL RPC. Bishops must wear their official red jacket; a collar alone is insufficient. This is a human confirmation, not automated image classification. Historical submitted records remain unchanged.

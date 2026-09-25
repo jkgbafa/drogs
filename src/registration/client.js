@@ -7,9 +7,10 @@ import {
   visibleState,
   normalEmail,
 } from "./model.mjs";
-const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-const mysqlBackend = process.env.NEXT_PUBLIC_REGISTRATION_BACKEND === "mysql";
+const mode = process.env.NEXT_PUBLIC_REGISTRATION_BACKEND;
+const mysqlBackend = mode === "mysql";
+const url = mysqlBackend || mode === "demo" ? "" : process.env.NEXT_PUBLIC_SUPABASE_URL;
+const key = mysqlBackend || mode === "demo" ? "" : process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 export const live = mysqlBackend || Boolean(url && key);
 async function server(path, body, options = {}) {
   const response = await fetch(`/api/registration/${path}`, {
@@ -22,7 +23,7 @@ async function server(path, body, options = {}) {
   if (!response.ok) throw Error(data.error || "Unable to complete the request.");
   return data;
 }
-export const configError = !mysqlBackend && Boolean(url) !== Boolean(key);
+export const configError = Boolean(url) !== Boolean(key) || (mode === "supabase" && !url);
 let client;
 const supabase = () =>
   client ||
