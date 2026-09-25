@@ -9,8 +9,20 @@ import {
 } from "./model.mjs";
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-export const live = Boolean(url && key);
-export const configError = Boolean(url) !== Boolean(key);
+const mysqlBackend = process.env.NEXT_PUBLIC_REGISTRATION_BACKEND === "mysql";
+export const live = mysqlBackend || Boolean(url && key);
+async function server(path, body, options = {}) {
+  const response = await fetch(`/api/registration/${path}`, {
+    credentials: "same-origin", cache: "no-store",
+    ...(body === undefined ? {} : { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }),
+    ...options,
+  });
+  let data;
+  try { data = await response.json(); } catch { throw Error("The registration server is unavailable. Please try again shortly."); }
+  if (!response.ok) throw Error(data.error || "Unable to complete the request.");
+  return data;
+}
+export const configError = !mysqlBackend && Boolean(url) !== Boolean(key);
 let client;
 const supabase = () =>
   client ||
@@ -50,6 +62,7 @@ function check(error) {
   if (error) throw Error(error.message);
 }
 export async function currentActor() {
+  if (mysqlBackend) return server("auth/me");
   if (configError)
     throw Error("Both Supabase URL and public key must be configured.");
   if (!live) return JSON.parse(sessionStorage.getItem(sessionKey) || "null");
@@ -58,6 +71,7 @@ export async function currentActor() {
   return { id: data.user.id, email: data.user.email };
 }
 export async function requestCode(email) {
+  if (mysqlBackend) return server("auth/request", { email });
   const { error } = await supabase().auth.signInWithOtp({
     email,
     options: { shouldCreateUser: true },
@@ -65,6 +79,7 @@ export async function requestCode(email) {
   check(error);
 }
 export async function verifyCode(email, token) {
+  if (mysqlBackend) return server("auth/verify", { email, token });
   const { data, error } = await supabase().auth.verifyOtp({
     email,
     token,
@@ -81,18 +96,21 @@ export function demoSignIn(email, office = false) {
   return actor;
 }
 export async function signOut() {
+  if (mysqlBackend) return server("auth/signout", {});
   if (live) {
     const { error } = await supabase().auth.signOut();
     check(error);
   } else sessionStorage.removeItem(sessionKey);
 }
 export async function snapshot(actor) {
+  if (mysqlBackend) return server("snapshot");
   if (!live) return visibleState(read(), actor, references);
   const { data, error } = await supabase().rpc("registration_snapshot");
   check(error);
   return data;
 }
 export async function action(actor, name, payload) {
+  if (mysqlBackend) return server("action", { name, payload });
   if (live) {
     const { error } = await supabase().rpc("registration_action", {
       action_name: name,
@@ -118,6 +136,12 @@ export async function upload(actor, file, kind = "portrait") {
   if (!image.width || !image.height)
     throw Error("This image could not be opened.");
   image.close();
+  if (mysqlBackend) {
+    const result = await server(`upload?kind=${encodeURIComponent(kind)}`, undefined, {
+      method: "POST", headers: { "Content-Type": file.type }, body: file,
+    });
+    return result.path;
+  }
   const path = `${actor.id}/${kind}/${crypto.randomUUID()}.${file.type.split("/")[1]}`;
   if (live) {
     const { error } = await supabase()
@@ -129,6 +153,7 @@ export async function upload(actor, file, kind = "portrait") {
 }
 export async function mediaUrl(path) {
   if (!path) return "";
+  if (mysqlBackend) return (await server(`media?path=${encodeURIComponent(path)}`)).url;
   if (live) {
     const { data, error } = await supabase()
       .storage.from("registration-media")

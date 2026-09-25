@@ -72,7 +72,8 @@ function Media({ path, alt, className = "" }) {
     let cancelled = false,
       object = "";
     setUrl("");
-    if (path)
+    const load = () => {
+      if (!path) return;
       api
         .mediaUrl(path)
         .then((u) => {
@@ -81,7 +82,11 @@ function Media({ path, alt, className = "" }) {
           else if (u.startsWith("blob:")) URL.revokeObjectURL(u);
         })
         .catch(() => {});
+    };
+    load();
+    const timer = api.live ? setInterval(load, 50 * 60 * 1000) : null;
     return () => {
+      if (timer) clearInterval(timer);
       cancelled = true;
       if (object.startsWith("blob:")) URL.revokeObjectURL(object);
     };
@@ -198,10 +203,13 @@ export default function RegistrationApp({ office = false }) {
     const until = Number(
       sessionStorage.getItem("drogs-registration-gate") || 0,
     );
-    setGate(until > Date.now());
+    setGate(api.live || until > Date.now());
   }, []);
   useEffect(() => {
-    if (actor) refresh().catch((e) => setError(e.message));
+    if (actor) {
+      if (api.live) setGate(true);
+      refresh().catch((e) => setError(e.message));
+    }
   }, [actor, refresh]);
   useEffect(() => {
     if (!actor) return;
@@ -335,7 +343,7 @@ export default function RegistrationApp({ office = false }) {
           </button>
         </div>
       )}
-      {!gate ? (
+      {!gate && !api.live ? (
         <Gate
           office={office}
           onEnter={() => {

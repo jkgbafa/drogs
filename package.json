@@ -12,17 +12,26 @@
     "prebuild": "node scripts/prepare-public.mjs",
     "build": "next build",
     "test": "node --test tests/registration/*.test.mjs",
-    "test:legacy": "node --test tests/api.test.mjs tests/role_reconciliation.test.mjs tests/question_versions.test.mjs tests/photo_url.test.mjs tests/portrait_framing.test.mjs tests/progress_status.test.mjs tests/bulk_review.test.mjs tests/application_review.test.mjs"
+    "test:legacy": "node --test tests/api.test.mjs tests/role_reconciliation.test.mjs tests/question_versions.test.mjs tests/photo_url.test.mjs tests/portrait_framing.test.mjs tests/progress_status.test.mjs tests/bulk_review.test.mjs tests/application_review.test.mjs",
+    "start": "node scripts/start-hostinger.mjs",
+    "dev:hostinger": "node scripts/start-hostinger.mjs --dev",
+    "db:migrate": "node scripts/migrate-mysql.mjs",
+    "test:mysql": "node --test tests/registration/mysql.integration.mjs"
   },
   "devDependencies": {
     "@electric-sql/pglite": "^0.5.8",
     "playwright": "^1.62.1"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1141.0",
+    "@aws-sdk/s3-request-presigner": "^3.1141.0",
     "@supabase/supabase-js": "^2.117.2",
+    "mysql2": "^3.24.4",
     "next": "16.3.6",
+    "nodemailer": "^10.0.10",
     "react": "19.3.0",
-    "react-dom": "19.3.0"
+    "react-dom": "19.3.0",
+    "sharp": "^0.35.4"
   },
   "engines": {
     "node": ">=22.0.0"

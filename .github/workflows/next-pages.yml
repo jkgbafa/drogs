@@ -28,3 +28,44 @@ jobs:
           name: registration-site
           path: out
           include-hidden-files: true
+  mysql:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: drogs-ci-only
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost -pdrogs-ci-only"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: pip install playwright
+      - run: python3 -m playwright install --with-deps chromium
+      - run: npm run build
+        env:
+          NEXT_PUBLIC_REGISTRATION_BACKEND: mysql
+          NEXT_PUBLIC_BASE_PATH: ''
+          NEXT_TELEMETRY_DISABLED: '1'
+      - run: npm run test:mysql
+        env:
+          TEST_MYSQL_PORT: '3306'
+          TEST_MYSQL_PASSWORD: drogs-ci-only
+          TEST_BROWSER: '1'
+          NEXT_PUBLIC_REGISTRATION_BACKEND: mysql
+          NEXT_PUBLIC_BASE_PATH: ''
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: mysql-browser-failure
+          path: /tmp/drogs-mysql-browser-failure.png
+          if-no-files-found: ignore

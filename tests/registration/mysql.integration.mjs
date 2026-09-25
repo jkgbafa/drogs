@@ -1,0 +1,125 @@
+import test from 'node:test';
+import { mkdtemp, writeFile, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { createServer } from 'node:http';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
+import { requestHandler } from '../../src/server/http.mjs';
+import assert from 'node:assert/strict';
+import mysql from 'mysql2/promise';
+import { S3Client } from '@aws-sdk/client-s3';
+import { Readable } from 'node:stream';
+import sharp from 'sharp';
+import { migrate } from '../../src/server/database.mjs';
+import { createAuth } from '../../src/server/auth.mjs';
+import { createStorage } from '../../src/server/storage.mjs';
+import { createApi } from '../../src/server/api.mjs';
+
+test('MySQL + private R2 transport: real persistence, authentication, scope, rollback and concurrent matching', { timeout: 180000 }, async () => {
+  if (!process.env.TEST_MYSQL_PORT) throw Error('Set TEST_MYSQL_PORT for an isolated local MySQL/MariaDB test server.');
+  const db = `drogs_test_${Date.now()}`;
+  const options = { host: '127.0.0.1', port: Number(process.env.TEST_MYSQL_PORT), user: process.env.TEST_MYSQL_USER || 'root', password: process.env.TEST_MYSQL_PASSWORD || '' };
+  const root = await mysql.createConnection(options);
+  await root.query(`CREATE DATABASE ${db}`);
+  const pool = mysql.createPool({ ...options, database: db, connectionLimit: 5 });
+  const mediaDir = await mkdtemp(`${tmpdir()}/drogs-mysql-test-`);
+  const mails = [], objects = new Map();
+  const config = { origin: 'https://drogsdagministry.org', secure: true, secret: 't'.repeat(64), admins: ['office@example.com', 'browser-office@example.com'], from: 'no-reply@example.com', r2: { account: 'a'.repeat(32), bucket: 'test-private', accessKeyId: 'test', secretAccessKey: 'test' } };
+  const auth = createAuth({ pool, config, mailer: { sendMail: async mail => { mails.push(mail); await writeFile(`${mediaDir}/mail.json`, JSON.stringify(mails), { mode: 0o600 }); } } });
+  const client = new S3Client({ region: 'auto', endpoint: `https://${config.r2.account}.r2.cloudflarestorage.com`, credentials: { accessKeyId: 'test', secretAccessKey: 'test' },
+    requestChecksumCalculation: 'WHEN_REQUIRED', requestHandler: { handle: async request => {
+      if (request.method === 'PUT') {
+        objects.set(request.path, request.body);
+        await writeFile(`${mediaDir}/${Buffer.from(request.path).toString('hex')}`, request.body);
+      }
+      if (request.method === 'DELETE') objects.delete(request.path);
+      return { response: { statusCode: 200, headers: {}, body: Readable.from([]) } };
+    } } });
+  const storage = createStorage({ pool, config, client });
+  const api = createApi({ pool, config, auth, storage });
+  async function call(path, cookie = '', body, options = {}) {
+    const response = await api(new Request(`${config.origin}/api/registration/${path}`, { method: body === undefined ? 'GET' : 'POST', headers: { origin: config.origin, cookie, 'content-type': 'application/json', ...options.headers }, ...(body === undefined ? {} : { body: JSON.stringify(body) }), ...options }));
+    return { status: response.status, data: await response.json(), cookie: response.headers.get('set-cookie')?.split(';')[0] };
+  }
+  async function login(email) {
+    assert.equal((await call('auth/request', '', { email })).status, 200);
+    const token = mails.at(-1).text.match(/code is (\d{6})/)[1];
+    const result = await call('auth/verify', '', { email, token });
+    assert.equal(result.status, 200);
+    assert.equal((await call('auth/verify', '', { email, token })).status, 401, 'code cannot be reused');
+    return result;
+  }
+  const image = await sharp({ create: { width: 60, height: 80, channels: 3, background: 'red' } }).png().toBuffer();
+  async function upload(who, kind = 'portrait') {
+    const result = await call(`upload?kind=${kind}`, who.cookie, undefined, { method: 'POST', headers: { origin: config.origin, cookie: who.cookie, 'content-type': 'image/png' }, body: image });
+    assert.equal(result.status, 201, JSON.stringify(result.data));
+    return result.data.path;
+  }
+  const profile = (photo, role = 'bishop') => ({ role, firstName: role === 'bishop' ? 'Test' : 'John', lastName: role === 'bishop' ? 'Bishop' : 'Doe', phone: '+233201234567', dob: '1990-01-01', country: 'Ghana', city: 'Accra', organization: 'First Love', denomination: 'First Love Church', photo, photoConfirmed: true, bishopId: 'B1' });
+  try {
+    await migrate(pool); await migrate(pool); // Idempotent, preserves existing records.
+    assert.equal((await call('snapshot')).status, 401);
+    const office = await login('office@example.com'), bishop = await login('bishop@example.com'), pastor = await login('pastor@example.com'), stranger = await login('stranger@example.com');
+    assert.equal(office.data.office, true);
+    assert.equal(bishop.data.office, false);
+    const bishopPhoto = await upload(bishop), pastorPhoto = await upload(pastor);
+    assert.equal(objects.size, 2);
+    let r = await call('action', bishop.cookie, { name: 'submit', payload: { ...profile(bishopPhoto), office: true } });
+    assert.equal(r.status, 200, JSON.stringify(r.data));
+    assert.equal((await call('action', bishop.cookie, { name: 'approveBishop', payload: { userId: bishop.data.id, office: true } })).status, 400);
+    assert.equal((await call('action', office.cookie, { name: 'approveBishop', payload: { userId: bishop.data.id, referenceId: 'B1' } })).status, 200);
+    assert.equal((await call('action', pastor.cookie, { name: 'save', payload: profile(bishopPhoto, 'pastor') })).status, 400, 'cannot save another account photo');
+    assert.equal((await call('action', pastor.cookie, { name: 'save', payload: profile(pastorPhoto, 'pastor') })).status, 200);
+    assert.equal((await call(`media?path=${pastorPhoto}`, bishop.cookie)).status, 403, 'draft stays private');
+    assert.equal((await call('action', pastor.cookie, { name: 'submit', payload: profile(pastorPhoto, 'pastor') })).status, 200);
+    assert.equal((await call(`media?path=${pastorPhoto}`, bishop.cookie)).status, 200);
+    assert.equal((await call(`media?path=${pastorPhoto}`, stranger.cookie)).status, 403);
+    const unclaimed = await call('snapshot', pastor.cookie);
+    assert.equal(unclaimed.data.registrations[0].status, 'unclaimed');
+    assert.equal((await call('action', bishop.cookie, { name: 'addRoster', payload: { rows: [{ name: 'Valid', email: 'valid@example.com' }, { name: '' }] } })).status, 400);
+    assert.equal((await call('snapshot', bishop.cookie)).data.rosters.length, 0, 'failed bulk write rolled back');
+    const concurrent = await Promise.all([1, 2].map(() => call('action', bishop.cookie, { name: 'addRoster', payload: { rows: [{ name: 'John Doe', email: 'pastor@example.com' }] } })));
+    assert.deepEqual(concurrent.map(r => r.status).sort(), [200, 400]);
+    assert.equal((await call('snapshot', bishop.cookie)).data.rosters.length, 1);
+    assert.equal((await call('snapshot', pastor.cookie)).data.registrations[0].status, 'confirmed');
+    const receipt = await upload(pastor, 'receipt');
+    assert.equal((await call('action', pastor.cookie, { name: 'payment', payload: { proof: receipt, nonrefundable: true } })).status, 200);
+    assert.equal((await call(`media?path=${receipt}`, bishop.cookie)).status, 403);
+    assert.equal((await call('snapshot', bishop.cookie)).data.registrations.find(r => r.userId === pastor.data.id).proof, undefined);
+    const media = await call(`media?path=${receipt}`, office.cookie);
+    assert.equal(media.status, 200);
+    assert.match(media.data.url, /r2\.cloudflarestorage\.com/);
+    assert.match(media.data.url, /X-Amz-Signature=/);
+    const [[saved]] = await pool.query('SELECT photo_key,proof_key,data FROM dr_registrations WHERE user_id=?', [pastor.data.id]);
+    assert.equal(saved.photo_key, pastorPhoto); assert.equal(saved.proof_key, receipt);
+    assert.doesNotMatch(saved.photo_key, /^https:/, 'database stores permanent keys, not expiring URLs');
+    assert.equal((await call('action', office.cookie, { name: 'reviewPayment', payload: { userId: pastor.data.id, result: 'verified' } })).status, 200);
+    assert.equal((await call('action', office.cookie, { name: 'openYear', payload: { year: 2028 } })).status, 200);
+    assert.equal((await call('snapshot', pastor.cookie)).data.registrations[0].payment, 'verified');
+    assert.equal((await call('auth/signout', pastor.cookie, {})).status, 200);
+    assert.equal((await call('snapshot', pastor.cookie)).status, 401);
+    assert.equal((await call('auth/request', '', { email: 'locked@example.com' })).status, 200);
+    const code = mails.at(-1).text.match(/code is (\d{6})/)[1];
+    const wrong = code === '000000' ? '000001' : '000000';
+    for (let i = 0; i < 5; i++) assert.equal((await call('auth/verify', '', { email: 'locked@example.com', token: wrong })).status, 401);
+    assert.equal((await call('auth/verify', '', { email: 'locked@example.com', token: code })).status, 401, 'locked after five failures');
+    assert.equal((await call('auth/request', '', { email: 'locked@example.com' })).status, 429);
+    if (process.env.TEST_BROWSER === '1') {
+      const { default: next } = await import('next');
+      config.origin = 'http://127.0.0.1:4208'; config.secure = false;
+      const app = next({ dev: false, hostname: '127.0.0.1', port: 4208 });
+      await app.prepare();
+      const server = createServer(requestHandler({ origin: config.origin, api, nextHandler: app.getRequestHandler() }));
+      await new Promise(resolve => server.listen(4208, '127.0.0.1', resolve));
+      try {
+        const { stdout } = await promisify(execFile)(process.env.TEST_PYTHON || 'python3', ['tests/registration/mysql-browser.py'], {
+          env: { ...process.env, TEST_MEDIA_DIR: mediaDir }, timeout: 100000,
+        });
+        console.log(stdout.trim());
+      } finally { await new Promise(resolve => server.close(resolve)); await app.close(); }
+    }
+  } finally {
+    await rm(mediaDir, { recursive: true, force: true });
+    client.destroy(); await pool.end(); await root.query(`DROP DATABASE ${db}`); await root.end();
+  }
+});
