@@ -29,7 +29,7 @@ Directory contains profiles. Submissions defaults to applications needing indivi
 
 Administrators use direct buttons to approve and unlock payment, request discussion, hold, decline or save a note. Decisions retain an audit history and can include a message displayed in the applicant's portal. No email or WhatsApp notification is sent. The dashboard places resignation and review counts side by side. Approval updates synchronize between tabs in the same browser; cross-device delivery requires the backend described below.
 
-Female members of the bishop category are titled Mother for First Love and Outreach, and Episcopal Sister for UD. The bishop category contains 258 records (UD 178, First Love 68, Outreach 12); there are 5,070 pastors (UD 4,379, First Love 685, Outreach 6), for 5,328 people overall. The FLOW Office has only three bishop-category members: Nely Nina Masuku, Leonard Hyde and Brian Masuku. Its six other members are Outreach pastors; prior codes and submissions are preserved through aliases. These are reconciled roster counts, not independent confirmation of every classification.
+Female members of the bishop category are titled Mother for First Love and Outreach, and Episcopal Sister for UD. The bishop category contains 259 records (UD 178, First Love 68, Outreach 13); there are 5,069 pastors (UD 4,379, First Love 685, Outreach 5), for 5,328 people overall. The FLOW Office has four bishop-category members: Nely Nina Masuku, Leonard Hyde, Brian Masuku and Pius Worlano. Its five other members are Outreach pastors; prior codes and submissions are preserved through aliases. These are reconciled roster counts, not independent confirmation of every classification.
 
 ## Storage and security
 

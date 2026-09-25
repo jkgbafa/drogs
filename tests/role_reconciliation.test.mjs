@@ -63,10 +63,12 @@ test('confirmed Healing Jesus and FLOW members are Outreach leaders with their l
   'FLOW Office':['Nely Nina Masuku','Brian Masuku','Leonard Hyde','Joshua Gbafa','Pius Worlano','Darius Phiri','Eniola Ajiga','Joel Obuobisa Jr','Walter Wolle']
  };
  for(const [group,names]of Object.entries(groups))for(const name of names){
-  const flowPastor=group==='FLOW Office'&&!['Nely Nina Masuku','Brian Masuku','Leonard Hyde'].includes(name);const person=(flowPastor?p:b).find(x=>x.name===name);assert(person,name);assert.equal(person.organization,'OUTREACH');assert.equal(person.outreachGroup,group);assert.equal(person.denominationLogo,'assets/denominations/outreach-org.png');assert(person.image);assert(!(flowPastor?b:p).some(x=>x.name===name));
+  const flowPastor=group==='FLOW Office'&&!['Nely Nina Masuku','Brian Masuku','Leonard Hyde','Pius Worlano'].includes(name);const person=(flowPastor?p:b).find(x=>x.name===name);assert(person,name);assert.equal(person.organization,'OUTREACH');assert.equal(person.outreachGroup,group);assert.equal(person.denominationLogo,'assets/denominations/outreach-org.png');assert(person.image);assert(!(flowPastor?b:p).some(x=>x.name===name));
  }
  assert.equal(b.find(x=>x.name==='Joel Obuobisa').organization,'UD-OLGC');
  assert(recordKeys(b.find(x=>x.name==='Miranda Siweya'),'bishop').includes('pastor:3127'));
  assert(recordKeys(p.find(x=>x.name==='Darius Phiri'),'pastor').includes('bishop:337'));
  assert(p.some(x=>x.code===4746&&x.name==='Joanne Eniola'));
 });
+
+test('Pius is restored to Outreach bishops with his pastor alias and supplied portrait',()=>{const pius=b.find(x=>x.code===336);assert.equal(pius.name,'Pius Worlano');assert.equal(pius.title,'Bishop');assert(recordKeys(pius,'bishop').includes('pastor:5106'));assert.equal(pius.image,'assets/outreach/pius-user-confirmed.jpg');assert(!p.some(x=>x.name==='Pius Worlano'));assert.equal(b.find(x=>x.code===319).directorySortLast,true)});

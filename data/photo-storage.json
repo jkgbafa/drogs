@@ -17256,6 +17256,11 @@
       "key": "portraits/82/826a23b5f0b190ae117fec6bcf3364fc8b6daaec649ab157cf5f061508d63421.jpeg",
       "sha256": "826a23b5f0b190ae117fec6bcf3364fc8b6daaec649ab157cf5f061508d63421",
       "bytes": 789052
+    },
+    "assets/outreach/pius-user-confirmed.jpg": {
+      "key": "portraits/0b/0b6c584b5cc64ba9f14df7324417f91211a65fa621b34e06670ca9d6961a16fe.jpg",
+      "sha256": "0b6c584b5cc64ba9f14df7324417f91211a65fa621b34e06670ca9d6961a16fe",
+      "bytes": 46875
     }
   }
 }
