@@ -23,3 +23,9 @@ test('all source rows remain accounted for after rank corrections',()=>{
   assert.equal(audit.unresolvedRows,0);
   assert.equal(Object.values(audit.mappedRowsByCategory).reduce((sum,n)=>sum+n,0),4709);
 });
+
+test('female bishop titles follow their recorded organization',()=>{
+  for(const person of b.filter(person=>person.gender==='FEMALE')){
+    assert.equal(person.title,person.organization==='UO-FLC190'?'Mother':'Episcopal Sister',person.name);
+  }
+});

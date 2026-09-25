@@ -1,0 +1,11 @@
+// Loaded by the client boundary after hydration; roster files remain compatible
+// with the existing source reconciliation scripts and stable B/P identifiers.
+import '../../data/bishops.js';
+import '../../data/pastors.js';
+import '../../data/bishop-questions.js';
+import '../../data/pastor-questions.js';
+import '../../data/bank-accounts.js';
+export function getDirectory(){
+  const {BISHOPS,PASTORS,BISHOP_QUESTIONS,PASTOR_QUESTIONS,PASTOR_QUESTION_SET,FLOW_BANK_ACCOUNTS}=window;
+  return {BISHOPS,PASTORS,BISHOP_QUESTIONS,PASTOR_QUESTIONS,PASTOR_QUESTION_SET,FLOW_BANK_ACCOUNTS};
+}

@@ -4,7 +4,7 @@ import { createRequire } from 'node:module';
 
 const require=createRequire(import.meta.url);
 const {chromium}=require(process.env.PLAYWRIGHT_PATH||'playwright');
-const BASE='http://127.0.0.1:4198';
+const BASE=process.env.DROGS_BASE_URL||'http://127.0.0.1:4198';
 const OUT='/tmp/drogs-qa';
 await mkdir(OUT,{recursive:true});
 
@@ -184,9 +184,11 @@ const timestamps=await admin.locator('.submission-table time').evaluateAll(eleme
 assert(timestamps.every((value,index)=>index===0||timestamps[index-1]>=value));
 await admin.locator('[data-submission-code="4"][data-submission-type="bishop"] .submission-person').click();
 assert.equal(await admin.locator('.record-toolbar span').textContent(),'2 of 3');
+assert.equal(await admin.locator('.record-person-title').textContent(),'Episcopal Sister');
 assert.equal(await admin.locator('.response-list>li').count(),10);
 assert((await admin.locator('.response-list').textContent()).includes('Not answered'));
-assert(await admin.locator('.fact-grid').getByText('Episcopal Sister',{exact:true}).isVisible());
+assert.equal(await admin.locator('.fact-grid').count(),0);
+assert.equal(await admin.getByRole('button',{name:'Profile information',exact:true}).count(),0);
 await admin.getByRole('button',{name:'Payment receipt',exact:true}).click();
 assert(await admin.locator('.admin-proof img').isVisible());
 await admin.getByRole('button',{name:'Enlarge payment receipt'}).click();
@@ -254,6 +256,7 @@ await admin.locator('.portrait-card').click();
 await admin.locator('.record-logo').evaluate(img=>img.decode());
 assert(await admin.locator('.record-photo').getAttribute('src'));
 assert.equal(await admin.locator('.record-photo').evaluate(img=>getComputedStyle(img).objectFit),'contain');
+assert.equal(await admin.locator('.record-person-title').textContent(),'Mother');
 assert.equal(await admin.locator('.record-country').textContent(),await admin.evaluate(()=>{const p=BISHOPS.find(p=>p.name==='Kiki Heward-Mills');return p.region&&p.region!=='International'?p.region:'Country not recorded'}));
 assert.equal(await admin.locator('.record-organization').count(),0);
 await admin.screenshot({path:OUT+'/admin-record.png'});

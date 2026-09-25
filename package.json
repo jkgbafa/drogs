@@ -3,12 +3,25 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "serve": "python3 -m http.server 4198 --bind 127.0.0.1",
+    "serve": "node scripts/serve-export.mjs",
     "test:browser": "node tests/browser_qa.mjs",
     "test:api": "node --test tests/api.test.mjs",
-    "api:key": "node scripts/create_api_key.mjs"
+    "api:key": "node scripts/create_api_key.mjs",
+    "predev": "node scripts/prepare-public.mjs",
+    "dev": "next dev",
+    "prebuild": "node scripts/prepare-public.mjs",
+    "build": "next build",
+    "test": "node --test tests/api.test.mjs tests/role_reconciliation.test.mjs"
   },
   "devDependencies": {
     "playwright": "^1.62.1"
+  },
+  "dependencies": {
+    "next": "16.3.6",
+    "react": "19.3.0",
+    "react-dom": "19.3.0"
+  },
+  "engines": {
+    "node": ">=22.0.0"
   }
 }
