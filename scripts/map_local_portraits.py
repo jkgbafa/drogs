@@ -23,7 +23,7 @@ def norm(value):
     value = re.sub(r'\b(jnr|junior)\b','jr',value)
     value = re.sub(r'\b(snr|senior)\b','sr',value)
     value = re.sub(r'copy of|red jacket|red attire', ' ', value)
-    value = re.sub(r'\b(bishop|bishops|pastor|pastors|reverend|rev|lady|mother|es|ps|bs|dr|prophet|jpg|jpeg|png|red)\b',' ',value)
+    value = re.sub(r'\b(bishop|bishops|pastor|pastors|reverend|rev|lady|mother|sister|es|ps|lp|bs|dr|prophet|jpg|jpeg|png|red)\b',' ',value)
     value = re.sub(r'^b\.\s*', '', value)
     return ''.join(re.findall('[a-z]+',value))
 
@@ -49,7 +49,10 @@ if not any(norm(p['name'])=='edwinmorganogoejr' for p in bishops):
 aliases = {45:['Edwin Morgan Ogoe','Edwin Morgan Ogoe Snr'],167:['Richard Aryee Snr'],
            169:['Richard Aryee Jnr'],79:['Henrietta Ariel Orlean Lindsay','Henrietta Ariel Orleans Lindsay'],
            59:['Luca Erica Aryee'],86:['Jacob Etrue Godwyll'],193:['Zoe Freda Andrea Asamoah'],
-           38:['Dennis Djagblatey'],150:['Paa Kwesi Nyarkoh'],156:['Phillippa Marker Coker']}
+           38:['Dennis Djagblatey'],150:['Paa Kwesi Nyarkoh'],156:['Phillippa Marker Coker'],
+           9:['Amelia Barecha Aidoo'],19:['Bridgette Marian Emunah Ogoe'],
+           23:['Christos Isaac Abbey Tala'],56:['Pascal Erasmus Mensah'],
+           99:['Joseph Kabiro Wachiro'],128:['Lovell Nii Ankrah']}
 ssd_paths = [Path(p) for p in Path('/tmp/drogs-ssd-files.txt').read_text().splitlines()]
 # Limit automatic bishop matching to portrait libraries, not generated composites.
 bishop_paths = [p for p in ssd_paths if usable(p) and any(x in str(p) for x in
@@ -62,7 +65,7 @@ def index(paths):
     result=defaultdict(list)
     for p in paths: result[norm(p.stem)].append(p)
     return result
-bindex,pindex = index(bishop_paths),index(pastor_paths)
+bindex,pindex = index(bishop_paths+pastor_paths),index(pastor_paths)
 names = Counter(norm(p['name']) for p in bishops+pastors)
 audit=[]
 def rank(path):
@@ -73,22 +76,26 @@ def rank(path):
 def assign(person,role,candidates):
     for source in sorted(set(candidates),key=rank):
         try:
+            out=ROOT/f'assets/{role}/matched-{person["code"]}.webp'
+            if person.get('image')==str(out.relative_to(ROOT)) and person.get('photoSourceFile')==source.name and out.exists():
+                audit.append({'role':role,'code':person['code'],'name':person['name'],'source':str(source)})
+                return source
             with Image.open(source) as original:
                 im=ImageOps.exif_transpose(original).convert('RGBA')
                 im.thumbnail((840,1000),Image.Resampling.LANCZOS)
-                out=ROOT/f'assets/{role}/matched-{person["code"]}.webp'
                 out.parent.mkdir(parents=True,exist_ok=True)
                 im.save(out,'WEBP',quality=87,method=4)
             person['image']=str(out.relative_to(ROOT))
             person.pop('photoNeedsReview',None)
             person['photoMatch']='Exact named local portrait'
+            person['photoSourceFile']=source.name
             audit.append({'role':role,'code':person['code'],'name':person['name'],'source':str(source)})
             return source
         except (OSError,ValueError): continue
     return None
 
 for p in bishops:
-    labels=aliases.get(p['code'],[p['name']])
+    labels=aliases.get(p['code'],[p['name']])+p.get('photoAliases',[])
     candidates=[f for label in labels for f in bindex.get(norm(label),[])]
     # Never match the unsuffixed Richard name to his junior.
     assign(p,'bishops',candidates)

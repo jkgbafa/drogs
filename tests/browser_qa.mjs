@@ -90,6 +90,18 @@ assert((await page.locator('.topline h1').textContent()).includes('Aaron Boison'
 assert((await page.locator('.affiliation').textContent()).includes('UD-OLGC'));
 assert.equal(await page.locator('.denomination-logo').count(),1);
 await page.screenshot({path:`${OUT}/pastor-profile.png`,fullPage:true});
+await page.getByRole('button',{name:/Fill annual declaration/}).click();
+await page.locator('#declaration-form').waitFor();
+assert.equal(await page.locator('.qno').filter({hasText:'10'}).count(),1);
+assert((await page.locator('.question').filter({has:page.locator('input[name="intention"]')}).locator('.qno').textContent()).includes('10'));
+await page.getByLabel('I wish to resign',{exact:true}).check();
+await page.getByRole('button',{name:'Submit response'}).click();
+await page.getByRole('heading',{name:'Thank you for your response.'}).waitFor();
+assert.equal(await page.locator('.payment-app').count(),0);
+await page.evaluate(()=>location.hash='payment');
+await page.getByRole('heading',{name:'Thank you for your response.'}).waitFor();
+assert.equal(await page.locator('.payment-app').count(),0);
+
 
 const admin=await context.newPage();
 watch(admin);
@@ -124,6 +136,8 @@ assert.equal(await admin.locator('.record-photo').evaluate(img=>getComputedStyle
 assert.equal(await admin.locator('.record-organization').textContent(),'UO-FLC190');
 await admin.screenshot({path:OUT+'/admin-record.png'});
 await admin.locator('#browse-denomination').click();
+assert(await admin.locator('.denomination-heading h2').isVisible());
+assert(await admin.locator('[data-directory-role="pastor"]').isVisible());
 assert.equal(await admin.locator('.record-modal').count(),0);
 assert(await admin.locator('.portrait-card').count()>0);
 await admin.locator('#clear-filters').click();
@@ -151,7 +165,7 @@ assert(await admin.getByRole('columnheader',{name:'Title',exact:true}).isVisible
 assert(await admin.getByRole('columnheader',{name:'Country',exact:true}).isVisible());
 assert.equal(await admin.getByRole('columnheader',{name:'Country / branch'}).count(),0);
 await admin.locator('[data-role="pastor"]').click();
-assert((await admin.locator('tbody tr').count())>5000);
+assert.equal(await admin.locator('tbody tr').count(),await admin.evaluate(()=>PASTORS.length));
 await admin.getByRole('button',{name:'Groups',exact:true}).click();
 await admin.locator('[data-option="FL OJ: ONLY JESUS"]').check();
 assert(await admin.locator('tbody tr').count()>0);
@@ -159,6 +173,12 @@ await admin.locator('#done-filter').click();
 await admin.locator('tbody tr').first().click();
 assert((await admin.locator('.fact-grid').textContent()).includes('FL OJ: ONLY JESUS'));
 await admin.locator('#close').click();
+await admin.locator('#clear-filters').click();
+assert.equal(await admin.locator('[data-filter="resignation"] strong').textContent(),'1');
+await admin.locator('[data-filter="resignation"]').click();
+assert.equal(await admin.locator('tbody tr').count(),1);
+assert((await admin.locator('tbody tr').textContent()).includes('Aaron Boison'));
+assert((await admin.locator('tbody tr').textContent()).includes('Not required'));
 await admin.locator('#clear-filters').click();
 await admin.locator('#search').fill('Aaron Boison');
 assert.equal(await admin.locator('tbody tr').count(),1);

@@ -86,3 +86,4 @@ html[data-capture-protection="active"] img{-webkit-user-drag:none;pointer-events
 .denomination-totals strong{color:#087f82;font-size:16px;margin-right:4px}
 .organization-counts{margin-left:5px}
 @media(max-width:540px){.denomination-heading{padding:20px;gap:16px}.denomination-heading-logo{width:58px;height:58px}.result-count{flex-wrap:wrap}}
+.resignation-summary{margin:-16px 0 28px}.resignation-metric{display:flex;flex-direction:row;align-items:center;gap:16px;width:100%;text-align:left;background:#f0eaf2;border:1px solid #e0d5e4;border-radius:14px;padding:16px 22px;color:#62416d;cursor:pointer}.resignation-metric strong{font-size:27px;line-height:1}.resignation-metric span{font-size:13px;font-weight:750}.resignation-metric small{margin-left:auto;font-size:12px}@media(max-width:540px){.resignation-metric{flex-wrap:wrap}.resignation-metric small{margin-left:0;width:100%}}
