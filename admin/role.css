@@ -1,0 +1,54 @@
+.admin-role-switch {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  max-width: 620px;
+  padding: 7px;
+  margin-top: 28px;
+  border: 1px solid var(--line);
+  border-radius: 15px;
+  background: #e8eeee;
+}
+
+.admin-role-switch button {
+  border: 0;
+  border-radius: 10px;
+  padding: 14px 18px;
+  background: transparent;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.admin-role-switch button.active {
+  color: var(--ink);
+  background: #fff;
+  box-shadow: 0 7px 22px #142d3614;
+}
+
+.admin-role-switch strong {
+  margin-left: 8px;
+  padding: 3px 7px;
+  border-radius: 20px;
+  background: var(--soft);
+  font-size: 10px;
+}
+
+.admin-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  background: linear-gradient(145deg, #1a7375, #0c3036);
+  color: #fff;
+  font-weight: 750;
+}
+
+.person-photo { width: 38px; height: 38px; object-fit: cover; object-position: top; border-radius: 50%; font-size: 10px; }
+.card-photo { width: 58px; height: 72px; border-radius: 10px; object-fit: cover; object-position: top; font-size: 14px; }
+.drawer-photo { width: 93px; height: 115px; object-fit: cover; object-position: top; border-radius: 14px; font-size: 22px; }
+.result-count { margin: -6px 0 12px; color: var(--muted); font-size: 10px; }
+
+@media (max-width: 720px) {
+  .admin-role-switch { max-width: none; }
+  .admin-role-switch button { padding: 12px 8px; }
+}

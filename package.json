@@ -1,0 +1,12 @@
+{
+  "name": "pastoral-renewal",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "serve": "python3 -m http.server 4198 --bind 127.0.0.1",
+    "test:browser": "node tests/browser_qa.mjs"
+  },
+  "devDependencies": {
+    "playwright": "^1.62.1"
+  }
+}
