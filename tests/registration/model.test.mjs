@@ -15,6 +15,12 @@ const bishop = { id: "b1", email: "bishop@example.com" },
 const profile = (actor, role = "pastor", name = "John Doe") => ({
   role,
   name,
+  firstName: name.split(" ")[0],
+  lastName: name.split(" ").slice(1).join(" ") || "Name",
+  denomination: "First Love Church",
+  country: "Ghana",
+  city: "Accra",
+  photoConfirmed: true,
   email: actor.email,
   phone: "+233201234567",
   dob: "1990-02-01",
@@ -182,5 +188,26 @@ test("failed bulk import is atomic, duplicates and invalid birth dates rejected"
         church: "Grace",
       },
     ],
+  );
+});
+
+test("new form enforces split names, location, organization denomination and attire acknowledgement", () => {
+  const p = profile(pastor);
+  for (const field of ["firstName", "lastName", "country", "city"])
+    assert.throws(() => validateProfile({ ...p, [field]: "" }, pastor.email));
+  assert.throws(
+    () =>
+      validateProfile({ ...p, denomination: "Invented Church" }, pastor.email),
+    /denomination/,
+  );
+  for (const organization of ["DHMM", "FLOW", "Healing Jesus Campaign"])
+    assert.equal(
+      validateProfile({ ...p, organization }, pastor.email).denomination,
+      "",
+    );
+  assert.throws(
+    () =>
+      applyAction(setup(), pastor, "submit", { ...p, photoConfirmed: false }),
+    /Confirm your photo/,
   );
 });

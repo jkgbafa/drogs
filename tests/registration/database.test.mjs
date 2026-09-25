@@ -26,6 +26,12 @@ test("PostgreSQL registration workflow enforces isolation, claims, payment locks
         "utf8",
       ),
     );
+    await db.exec(
+      await fs.readFile(
+        "supabase/migrations/202609250003_registration_details.sql",
+        "utf8",
+      ),
+    );
     for (const [name, id] of Object.entries(ids))
       await db.query("insert into auth.users values($1,$2,now())", [
         id,
@@ -55,6 +61,12 @@ test("PostgreSQL registration workflow enforces isolation, claims, payment locks
     const form = (who, role = "pastor") => ({
       role,
       name: who === "pastor" ? "John Doe" : `${who} Name`,
+      firstName: who === "pastor" ? "John" : who,
+      lastName: who === "pastor" ? "Doe" : "Name",
+      denomination: "First Love Church",
+      country: "Ghana",
+      city: "Accra",
+      photoConfirmed: true,
       phone: who === "pastor" ? "+233201234567" : "+233209998888",
       dob: "1990-02-01",
       church: "Grace",
@@ -108,6 +120,14 @@ test("PostgreSQL registration workflow enforces isolation, claims, payment locks
       "bishop cannot read a pastor draft",
     );
     await as("pastor");
+    await assert.rejects(
+      () => call("submit", { ...form("pastor"), photoConfirmed: false }),
+      /Confirm your photo/,
+    );
+    await assert.rejects(
+      () => call("submit", { ...form("pastor"), denomination: "Invented" }),
+      /denomination/,
+    );
     await call("submit", { ...form("pastor"), status: "confirmed", amount: 0 });
     let s = await snap();
     assert.equal(s.registrations[0].status, "unclaimed");

@@ -10,6 +10,7 @@ import {
   cloneElement,
 } from "react";
 import * as api from "./client";
+import { DENOMINATIONS } from "./denominations.mjs";
 import {
   ORGANIZATIONS,
   AMOUNTS,
@@ -721,7 +722,7 @@ function Participant({
               <p>
                 {titleCase(current.data.role)} · {current.data.organization}
               </p>
-              <small>{current.data.church}</small>
+              <small>{current.data.denomination || current.data.church}</small>
             </div>
           </div>
           <dl className="reg-details">
@@ -787,6 +788,12 @@ function RegistrationForm({
       ...{
         role: profile?.role || "pastor",
         name: "",
+        firstName: "",
+        lastName: "",
+        denomination: "",
+        country: "",
+        city: "",
+        photoConfirmed: false,
         phone: "",
         dob: "",
         church: "",
@@ -801,7 +808,14 @@ function RegistrationForm({
     [review, setReview] = useState(false),
     [accurate, setAccurate] = useState(false),
     [fileBusy, setFileBusy] = useState(false);
-  const set = (key, value) => setData((d) => ({ ...d, [key]: value }));
+  const set = (key, value) =>
+    setData((d) => {
+      const next = { ...d, [key]: value, photoConfirmed: false };
+      if (key === "organization") next.denomination = "";
+      if (key === "firstName" || key === "lastName")
+        next.name = [next.firstName, next.lastName].filter(Boolean).join(" ");
+      return next;
+    });
   const [bishopSearch, setBishopSearch] = useState("");
   const options = state.directory.filter(
     (b) =>
@@ -857,12 +871,15 @@ function RegistrationForm({
           <div className="reg-guidance">
             <h3>Your official portrait</h3>
             <img
-              src={`${base}/${data.role === "bishop" ? "assets/bishops/001.jpg" : "assets/pastors/reconciled-5.webp"}`}
+              src={`${base}/${data.role === "bishop" ? "assets/outreach/brian-masuku.png" : "assets/pastors/reconciled-5.webp"}`}
               alt={`Example ${data.role} portrait in official attire`}
             />
             <p>
-              Wear your official attire. Face the camera, use a plain background
-              and keep your face fully visible.
+              {data.role === "bishop"
+                ? "Bishops must wear their official red jacket. A collar alone is not sufficient."
+                : "Wear your official pastoral attire."}{" "}
+              Face the camera, use a plain background and keep your face fully
+              visible.
             </p>
             <small>JPG, PNG or WebP · up to 5 MB</small>
           </div>
@@ -874,6 +891,8 @@ function RegistrationForm({
                 e.preventDefault();
                 run(async () => {
                   validateProfile(data, actor.email);
+                  setData((d) => ({ ...d, photoConfirmed: false }));
+                  setAccurate(false);
                   setReview(true);
                 });
               }}
@@ -907,13 +926,22 @@ function RegistrationForm({
                     ))}
                   </select>
                 </Field>
-                <Field label="Full name" wide>
+                <Field label="First name">
                   <input
                     required
-                    maxLength={160}
-                    value={data.name}
-                    onChange={(e) => set("name", e.target.value)}
-                    autoComplete="name"
+                    maxLength={80}
+                    value={data.firstName}
+                    onChange={(e) => set("firstName", e.target.value)}
+                    autoComplete="given-name"
+                  />
+                </Field>
+                <Field label="Last name">
+                  <input
+                    required
+                    maxLength={80}
+                    value={data.lastName}
+                    onChange={(e) => set("lastName", e.target.value)}
+                    autoComplete="family-name"
                   />
                 </Field>
                 <Field label="Email address">
@@ -949,11 +977,46 @@ function RegistrationForm({
                     autoComplete="bday"
                   />
                 </Field>
-                <Field label="Church">
+                <Field
+                  label="Denomination"
+                  hint={
+                    !(DENOMINATIONS[data.organization] || []).length
+                      ? "Not applicable to this organization."
+                      : undefined
+                  }
+                >
+                  <select
+                    value={data.denomination}
+                    onChange={(e) => set("denomination", e.target.value)}
+                    disabled={!(DENOMINATIONS[data.organization] || []).length}
+                    required={
+                      (DENOMINATIONS[data.organization] || []).length > 0
+                    }
+                  >
+                    <option value="">
+                      {(DENOMINATIONS[data.organization] || []).length
+                        ? "Select denomination"
+                        : "Not applicable"}
+                    </option>
+                    {(DENOMINATIONS[data.organization] || []).map((d) => (
+                      <option key={d}>{d}</option>
+                    ))}
+                  </select>
+                </Field>
+                <Field label="Country">
                   <input
                     required
-                    value={data.church}
-                    onChange={(e) => set("church", e.target.value)}
+                    value={data.country}
+                    onChange={(e) => set("country", e.target.value)}
+                    autoComplete="country-name"
+                  />
+                </Field>
+                <Field label="City">
+                  <input
+                    required
+                    value={data.city}
+                    onChange={(e) => set("city", e.target.value)}
+                    autoComplete="address-level2"
                   />
                 </Field>
                 {data.role === "pastor" && (
@@ -1047,6 +1110,67 @@ function RegistrationForm({
             </form>
           ) : (
             <>
+              <section
+                className="reg-attire-review"
+                aria-label="Confirm your official portrait"
+              >
+                <h2>Is this the right photo?</h2>
+                <p>
+                  {data.role === "bishop"
+                    ? "Your photo must show you wearing your official red jacket. A collar without the red jacket is not sufficient."
+                    : "Your photo must show you in your official pastoral attire."}{" "}
+                  No casual clothing or selfies. Your face must be fully visible
+                  against a plain background.
+                </p>
+                <div className="reg-photo-comparison">
+                  <figure>
+                    <Media
+                      path={data.photo}
+                      alt="Your uploaded photo for confirmation"
+                    />
+                    <figcaption>Your uploaded photo</figcaption>
+                  </figure>
+                  <figure>
+                    <img
+                      src={`${base}/${data.role === "bishop" ? "assets/outreach/brian-masuku.png" : "assets/pastors/reconciled-5.webp"}`}
+                      alt={
+                        data.role === "bishop"
+                          ? "Required bishop red-jacket example"
+                          : "Required pastoral attire example"
+                      }
+                    />
+                    <figcaption>
+                      {data.role === "bishop"
+                        ? "Required: official red jacket"
+                        : "Example: official pastoral attire"}
+                    </figcaption>
+                  </figure>
+                </div>
+                <label className="reg-check">
+                  <input
+                    type="checkbox"
+                    checked={data.photoConfirmed === true}
+                    onChange={(e) =>
+                      setData((d) => ({
+                        ...d,
+                        photoConfirmed: e.target.checked,
+                      }))
+                    }
+                  />
+                  {data.role === "bishop"
+                    ? "I confirm this is me wearing my official red jacket, with my face fully visible against a plain background."
+                    : "I confirm this is me in official pastoral attire, with my face fully visible against a plain background."}
+                </label>
+                <button
+                  className="reg-secondary"
+                  onClick={() => {
+                    set("photoConfirmed", false);
+                    setReview(false);
+                  }}
+                >
+                  Choose a different photo
+                </button>
+              </section>
               <ProfileDetails record={{ data }} directory={state.directory} />
               <label className="reg-check">
                 <input
@@ -1071,7 +1195,7 @@ function RegistrationForm({
                 <button
                   className="reg-primary"
                   onClick={send}
-                  disabled={!accurate || busy}
+                  disabled={!accurate || !data.photoConfirmed || busy}
                 >
                   Submit registration →
                 </button>
@@ -1204,7 +1328,9 @@ function ProfileDetails({ record, directory = [] }) {
           ["Email", p.email],
           ["Phone", p.phone],
           ["Date of birth", p.dob],
-          ["Church", p.church],
+          ["Denomination", p.denomination || p.church || "Not applicable"],
+          ["Country", p.country || "—"],
+          ["City", p.city || "—"],
           ...(p.role === "pastor"
             ? [
                 [
@@ -1313,7 +1439,7 @@ function Directory({ records, directory }) {
                   {titleCase(r.data.role)} · {r.data.organization}
                 </small>
                 <h3>{r.data.name}</h3>
-                <p>{r.data.church}</p>
+                <p>{r.data.denomination || r.data.church}</p>
                 <Badge status={r.payment}>
                   {r.payment === "pending" ? "Payment under review" : null}
                 </Badge>
@@ -1365,7 +1491,7 @@ function ReviewQueue({ records, state, perform, office, canEdit }) {
             <div>
               <h3>{r.data.name}</h3>
               <p>
-                {r.data.organization} · {r.data.church}
+                {r.data.organization} · {r.data.denomination || r.data.church}
               </p>
               <small>
                 Claims:{" "}

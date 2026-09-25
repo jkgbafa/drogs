@@ -1,3 +1,4 @@
+import { DENOMINATIONS } from "./denominations.mjs";
 export const ORGANIZATIONS = [
   "First Love",
   "United Denominations",
@@ -31,7 +32,16 @@ export const emptyState = () => ({
 export function validateProfile(p, email, { draft = false } = {}) {
   const q = {
     role: p.role,
-    name: String(p.name || "").trim(),
+    firstName: String(p.firstName || "").trim(),
+    lastName: String(p.lastName || "").trim(),
+    name: [p.firstName, p.lastName]
+      .map((v) => String(v || "").trim())
+      .filter(Boolean)
+      .join(" "),
+    denomination: p.denomination || "",
+    country: String(p.country || "").trim(),
+    city: String(p.city || "").trim(),
+    photoConfirmed: p.photoConfirmed === true,
     phone: String(p.phone || "").trim(),
     email: normalEmail(email),
     dob: p.dob || "",
@@ -44,7 +54,8 @@ export function validateProfile(p, email, { draft = false } = {}) {
   if (!["bishop", "pastor"].includes(q.role))
     throw Error("Choose Bishop or Pastor.");
   if (!draft) {
-    if (!q.name || q.name.length > 160) throw Error("Enter your full name.");
+    if (!q.firstName || !q.lastName || q.name.length > 160)
+      throw Error("Enter your first and last names.");
     if (!/^\S+@\S+\.\S+$/.test(q.email))
       throw Error("Enter a valid email address.");
     if (normalPhone(q.phone).length < 7 || normalPhone(q.phone).length > 15)
@@ -57,7 +68,10 @@ export function validateProfile(p, email, { draft = false } = {}) {
       q.dob >= new Date().toISOString().slice(0, 10)
     )
       throw Error("Enter a valid date of birth in the past.");
-    if (!q.church) throw Error("Enter your church.");
+    if (!q.country || !q.city) throw Error("Enter your country and city.");
+    const denominations = DENOMINATIONS[q.organization] || [];
+    if (denominations.length && !denominations.includes(q.denomination))
+      throw Error("Select a denomination listed under your organization.");
     if (!ORGANIZATIONS.includes(q.organization))
       throw Error("Choose your organization.");
     if (!q.photo) throw Error("Upload your official-attire photo.");
@@ -66,6 +80,7 @@ export function validateProfile(p, email, { draft = false } = {}) {
     if (q.bishopId === "missing" && !q.bishopName)
       throw Error("Enter the name of your bishop.");
   }
+  if (!(DENOMINATIONS[q.organization] || []).length) q.denomination = "";
   if (q.role === "bishop") {
     q.bishopId = "";
     q.bishopName = "";
@@ -177,6 +192,10 @@ export function applyAction(
     const data = validateProfile(payload, actor.email, {
       draft: action === "save",
     });
+    if (action === "submit" && !data.photoConfirmed)
+      throw Error(
+        "Confirm your photo and required official attire before submitting.",
+      );
     if (profile && profile.role !== data.role)
       throw Error("Contact the office to change your account role.");
     if (!profile) {

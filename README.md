@@ -11,7 +11,7 @@ The application starts with **zero registrations**. The existing bishop names ar
 ## Registration and annual lists
 
 - New and returning members enter an email address. Connected mode uses Supabase email OTP verification.
-- Required details: role, full name, email, phone, date of birth, church, organization, and an official-attire photo. Pastors select a bishop, or enter a name if the bishop is missing.
+- Required details: role, first name, last name, email, phone, date of birth, country, city, organization, denomination where applicable, and an official-attire photo. Pastors select a bishop, or enter a name if the bishop is missing.
 - Organizations: First Love, United Denominations, DHMM, FLOW, Healing Jesus Campaign. Outreach is no longer a registration option.
 - Drafts can be saved; applicants review details and confirm accuracy before submission.
 - The office verifies bishop accounts and optionally links each account to the correct legacy bishop reference. Approval unlocks the bishop’s annual list and $100 USD commitment.
@@ -25,7 +25,7 @@ The application starts with **zero registrations**. The existing bishop names ar
 
 ## Backend setup when keys are available
 
-1. Create a Supabase project. Apply `supabase/migrations/202609250002_registration.sql` and `supabase/registration-reference-seed.sql`. A fresh registration-only project does not need the older API migration. Neither script erases existing data. The seed contains reference names, titles, organization labels and photo paths, not personal contacts or registrations.
+1. Create a Supabase project. Apply `supabase/migrations/202609250002_registration.sql`, `supabase/migrations/202609250003_registration_details.sql` and `supabase/registration-reference-seed.sql`. A fresh registration-only project does not need the older API migration. Neither script erases existing data. The seed contains reference names, titles, organization labels and photo paths, not personal contacts or registrations.
 2. Enable email authentication. In the Magic Link template include `{{ .Token }}` to send the one-time code used by this interface. Configure custom SMTP and appropriate delivery limits. Supabase’s default sender only sends to project-team addresses and is not sufficient for public registration.
 3. Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` to the project URL and public publishable/anon key. Both are required. Never place a secret/service-role key in a `NEXT_PUBLIC_` variable.
 4. An office member signs in to create their verified auth user. Add that exact user ID to `registration_office` using the Supabase SQL editor, e.g. `insert into public.registration_office(user_id) values ('VERIFIED-USER-UUID');`. There is no client-side office-role assignment in connected mode.
@@ -53,3 +53,5 @@ Browser checks use isolated browser storage and sample accounts, preserving the 
 ## Separate preview publishing
 
 The source branch is `codex/annual-registration` in `jkgbafa/drogs`. CI validates it and produces a `registration-site` artifact; it has no permissions to replace the old Pages site. The separate `jkgbafa/drogs-registration` repository serves only the tested static export at `https://jkgbafa.github.io/drogs-registration/`. It contains no legacy directories or source contact data. Publish a tested `out/` build to that repository’s `main` branch, including `.nojekyll`. Only the mitre and two attire examples are copied into the public assets; original portrait files remain in the source repository.
+
+The registration form replaces Church with an organization-dependent Denomination dropdown; its complete choices are in [DENOMINATIONS.md](DENOMINATIONS.md). First Love includes its main church and the six supplied affiliated denominations. DHMM, FLOW and Healing Jesus Campaign disable and clear the denomination. The review screen places the applicant’s image beside the role-specific example and requires an explicit attire acknowledgement before submission, enforced by both the local model and SQL RPC. Bishops must wear their official red jacket; a collar alone is insufficient. This is a human confirmation, not automated image classification. Historical submitted records remain unchanged.

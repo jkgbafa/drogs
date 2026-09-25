@@ -140,4 +140,4 @@ export async function mediaUrl(path) {
   return file ? URL.createObjectURL(file) : "";
 }
 export const referenceImage = (role) =>
-  `${process.env.NEXT_PUBLIC_BASE_PATH || ""}/${role === "bishop" ? "assets/bishops/001.jpg" : "assets/pastors/reconciled-5.webp"}`;
+  `${process.env.NEXT_PUBLIC_BASE_PATH || ""}/${role === "bishop" ? "assets/outreach/brian-masuku.png" : "assets/pastors/reconciled-5.webp"}`;
