@@ -7,7 +7,7 @@ import { createDrogsSession } from './session';
 import { createEventScope } from './events';
 
 export function mountAdmin(host,directory) {
-const {BISHOPS,PASTORS,BISHOP_QUESTIONS,BISHOP_QUESTION_SET,BISHOP_QUESTIONS_V1,BISHOP_QUESTIONS_V2,BISHOP_QUESTIONS_V3,PASTOR_QUESTIONS,PASTOR_QUESTION_SET,PASTOR_QUESTIONS_V1,PASTOR_QUESTIONS_V2,PASTOR_QUESTIONS_V3,FLOW_BANK_ACCOUNTS}=directory;
+const {BISHOPS,PASTORS,BISHOP_QUESTIONS,BISHOP_QUESTION_SET,BISHOP_QUESTIONS_V1,BISHOP_QUESTIONS_V2,BISHOP_QUESTIONS_V3,PASTOR_QUESTIONS,PASTOR_QUESTION_SET,PASTOR_QUESTIONS_V1,PASTOR_QUESTIONS_V2,PASTOR_QUESTIONS_V3,PASTOR_QUESTIONS_V4,FLOW_BANK_ACCOUNTS}=directory;
 const events=createEventScope();
 const FIRST_LOVE_GROUPS=["FL OJ: ONLY JESUS","FL JF: JESUS FIRST","FL EU: SERVE JESUS","FL UK: CHOOSE JESUS","FL CI: JESUS NOW","FL NA: JESUS FOREVER","FL KJ: KING JESUS"];
 const UD_GROUPS=['UA — United Africa','UI — United Islands','UD EU — Europe','UD GH — Ghana','UD NA — North America','UJ — United Jesus','ESC — Eschatos'];
@@ -142,7 +142,7 @@ function fact(labelText,value){return value&&value!=='N/A'?`<div><span>${labelTe
 function declarationAnswers(r,type){
  const responses=r.responses||{};
  const pastorForm=r.questionSet?.startsWith('pastor-')||Object.keys(responses).some(name=>name.startsWith('pastor'));
- const questions=pastorForm?(r.questionSet===PASTOR_QUESTION_SET?PASTOR_QUESTIONS:r.questionSet==='pastor-2027-v3'?PASTOR_QUESTIONS_V3:r.questionSet==='pastor-2027-v2'?PASTOR_QUESTIONS_V2:PASTOR_QUESTIONS_V1):(r.questionSet===BISHOP_QUESTION_SET?BISHOP_QUESTIONS:r.questionSet==='governance-2027-v3'?BISHOP_QUESTIONS_V3:r.questionSet==='governance-2027-v2'?BISHOP_QUESTIONS_V2:BISHOP_QUESTIONS_V1);
+ const questions=pastorForm?(r.questionSet===PASTOR_QUESTION_SET?PASTOR_QUESTIONS:r.questionSet==='pastor-2027-v4'?PASTOR_QUESTIONS_V4:r.questionSet==='pastor-2027-v3'?PASTOR_QUESTIONS_V3:r.questionSet==='pastor-2027-v2'?PASTOR_QUESTIONS_V2:PASTOR_QUESTIONS_V1):(r.questionSet===BISHOP_QUESTION_SET?BISHOP_QUESTIONS:r.questionSet==='governance-2027-v3'?BISHOP_QUESTIONS_V3:r.questionSet==='governance-2027-v2'?BISHOP_QUESTIONS_V2:BISHOP_QUESTIONS_V1);
  const answer=(value,options=[])=>{
    if(value===undefined||value===null||value==='')return 'Not answered';
    const option=options.find(o=>typeof o==='object'&&o.value===value);

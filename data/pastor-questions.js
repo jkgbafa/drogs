@@ -1,4 +1,4 @@
-window.PASTOR_QUESTION_SET='pastor-2027-v4';
+window.PASTOR_QUESTION_SET='pastor-2027-v5';
 window.PASTOR_QUESTIONS=[
  {
   "id": "pastorBeliefs",
@@ -327,39 +327,6 @@ window.PASTOR_QUESTIONS=[
    ],
    "reason": "Commitment to the ministry vision needs review."
   }
- },
- {
-  "id": "pastorAnnualCommitment",
-  "title": "Do you commit to supporting the ministry through your Annual Ministerial Commitment?",
-  "type": "choice",
-  "options": [
-   "Yes",
-   "Partly / sometimes",
-   "No"
-  ],
-  "review": {
-   "clear": [
-    "Yes"
-   ],
-   "middle": [
-    "Partly / sometimes"
-   ],
-   "flag": [
-    "No"
-   ],
-   "reason": "This answer needs a conversation with leadership."
-  },
-  "followUps": [
-   {
-    "id": "pastorPaymentPreference",
-    "label": "Preferred payment",
-    "type": "choice",
-    "options": [
-     "Annual",
-     "Monthly"
-    ]
-   }
-  ]
  },
  {
   "id": "pastorLeadershipDisclosure",

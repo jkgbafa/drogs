@@ -64,6 +64,6 @@ Run `python scripts/r2_photos.py --probe`, then `python scripts/r2_photos.py`. S
 
 All 3,431 linked portraits have been uploaded to R2 and verified for object size and SHA-256 metadata. Live image links remain local until the bucket’s public development URL is supplied and anonymous image access is verified.
 
-Question definitions are versioned; older submissions retain the wording in `data/question-history.js`. The annual/monthly choice records a payment preference and does not create recurring payments.
+Question definitions are versioned; older submissions retain the wording in `data/question-history.js`. The current pastor declaration has nine main questions. It no longer asks for an Annual Ministerial Commitment or an annual/monthly payment preference; the separate payment step remains available after approval.
 
 Portraits use proportional cover framing with per-image face positions in `data/portrait-framing.json`. The local macOS Vision helper `scripts/portrait-framing.swift` detects face rectangles for framing only; it does not identify people or alter source images.
