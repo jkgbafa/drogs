@@ -2,13 +2,14 @@
 import { useEffect, useState } from 'react';
 import * as api from './client';
 const scopes = [
+  ['backend:read', 'Read all application data', 'All years, drafts, full registrations, profiles, accounts, pastor lists, payments, receipts, photos, history, settings and API-key metadata.'],
   ['registrations:read', 'Read registrations', 'Submitted names, contact details, organizations and registration status.'],
   ['rosters:read', 'Read annual pastor lists', 'Names and contact details in bishops’ annual lists.'],
   ['photos:read', 'View portraits', 'Temporary links to submitted portraits. Payment receipts remain private.'],
 ];
 export default function ApiKeys({ run }) {
   const [keys, setKeys] = useState([]), [name, setName] = useState(''), [days, setDays] = useState('90');
-  const [selected, setSelected] = useState(['registrations:read']), [issued, setIssued] = useState(null), [revoke, setRevoke] = useState(null);
+  const [selected, setSelected] = useState(['backend:read']), [issued, setIssued] = useState(null), [revoke, setRevoke] = useState(null);
   const reload = async () => setKeys(await api.listKeys());
   useEffect(() => { run(reload); }, []);
   return <div className="reg-api-keys">
@@ -37,7 +38,7 @@ export default function ApiKeys({ run }) {
       </fieldset>
       <button className="reg-primary" disabled={!selected.length}>Create API key</button>
     </form>
-    {issued && <section className="reg-card" aria-label="New API key">
+    {issued && <section className="reg-card" aria-label="Created key details">
       <h2>Copy your key now</h2><p>This is the only time the full key is shown. Store it in the connected app’s server settings.</p>
       <label className="reg-field">API key<input aria-label="New API key" readOnly value={issued.token} autoComplete="off" spellCheck={false} /></label>
       <p>Expires {new Date(issued.key.expiresAt).toLocaleDateString()}.</p>
@@ -60,6 +61,7 @@ export default function ApiKeys({ run }) {
     </section>
     <section className="reg-card"><h2>Connect an application</h2>
       <p>Send the key in an <code>Authorization: Bearer YOUR_API_KEY</code> header from your app’s server. Don’t put it in a website’s public JavaScript.</p>
+      <p>Full access uses <code>/api/v1/backend/</code>: registrations, rosters, profiles, users, history, media, media-url, settings, reference and keys. Registrations include payments and receipt references. All years are included unless filtered.</p>
       <ul><li><code>GET /api/v1/registrations?year=2027&amp;limit=50</code></li><li><code>GET /api/v1/rosters?year=2027&amp;limit=50</code></li><li><code>GET /api/v1/photos?path=ENCODED_PHOTO_PATH</code></li></ul>
       <p>List responses include <code>nextCursor</code>. Pass it as <code>after</code> to get the next page. The limit is 120 requests per minute per key.</p>
     </section>

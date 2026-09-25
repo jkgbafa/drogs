@@ -1,7 +1,10 @@
+import { readFile } from 'node:fs/promises';
+import { ORGANIZATIONS, AMOUNTS } from '../registration/model.mjs';
+import { DENOMINATIONS } from '../registration/denominations.mjs';
 import { randomBytes, randomUUID } from 'node:crypto';
 import { HttpError, digest, rateLimit } from './auth.mjs';
 import { transaction } from './database.mjs';
-export const KEY_SCOPES = ['registrations:read', 'rosters:read', 'photos:read'];
+export const KEY_SCOPES = ['backend:read', 'registrations:read', 'rosters:read', 'photos:read'];
 export function keyOptions(input) {
   const name = typeof input.name === 'string' ? input.name.trim() : '';
   const scopes = Array.isArray(input.scopes) ? [...new Set(input.scopes)] : [];
@@ -62,11 +65,13 @@ export function createKeyService({ pool, config, storage }) {
       const [[key]] = await pool.execute('SELECT k.*,u.email AS issuer_email FROM dr_api_keys k JOIN dr_users u ON u.id=k.created_by WHERE k.token_hash=? AND k.revoked_at IS NULL AND k.expires_at>?', [digest(config.secret, `api-key:${token}`), Date.now()]);
       if (!key || !config.admins.includes(key.issuer_email)) throw new HttpError(401, 'This API key is invalid, expired or revoked.');
       const url = new URL(request.url), route = url.pathname.replace(/\/$/, '');
-      const permission = { '/api/v1/registrations': 'registrations:read', '/api/v1/rosters': 'rosters:read', '/api/v1/photos': 'photos:read' }[route];
+      const backend = route.startsWith('/api/v1/backend/');
+      const permission = backend ? 'backend:read' : { '/api/v1/registrations': 'registrations:read', '/api/v1/rosters': 'rosters:read', '/api/v1/photos': 'photos:read' }[route];
       if (!permission) throw new HttpError(404, 'API endpoint not found.');
-      if (!parse(key.scopes).includes(permission)) throw new HttpError(403, `This key requires ${permission} permission.`);
+      if (!parse(key.scopes).includes(permission) && !parse(key.scopes).includes('backend:read')) throw new HttpError(403, `This key requires ${permission} permission.`);
       await rateLimit(pool, config, `api-key:${key.id}`, 120, 60000);
       await pool.execute('UPDATE dr_api_keys SET last_used_at=? WHERE id=?', [Date.now(), key.id]);
+      if (backend) return readBackend(pool, storage, url);
       if (permission === 'photos:read') {
         const path = url.searchParams.get('path');
         if (!path || path.length > 512) throw new HttpError(400, 'Supply a valid portrait path.');
@@ -81,7 +86,7 @@ export function createKeyService({ pool, config, storage }) {
         throw new HttpError(400, 'Use a valid year, limit from 1 to 100, and the returned pagination cursor.');
       const registrations = permission === 'registrations:read';
       const table = registrations ? 'dr_registrations' : 'dr_rosters', column = registrations ? 'user_id' : 'id';
-      const [rows] = await pool.query(`SELECT ${column} AS cursor,data FROM ${table} WHERE registration_year=? AND ${column}>?${registrations ? " AND JSON_UNQUOTE(JSON_EXTRACT(data,'$.status')) <> 'draft'" : ''} ORDER BY ${column} LIMIT ${limit + 1}`, [year, after]);
+      const [rows] = await pool.query(`SELECT ${column} AS page_id,data FROM ${table} WHERE registration_year=? AND ${column}>?${registrations ? " AND JSON_UNQUOTE(JSON_EXTRACT(data,'$.status')) <> 'draft'" : ''} ORDER BY ${column} LIMIT ${limit + 1}`, [year, after]);
       const data = rows.slice(0, limit).map(row => {
         const r = parse(row.data);
         if (!registrations) return { id: r.id, year: r.year, bishopId: r.bishopId, name: r.name, email: r.email, phone: r.phone, church: r.church, status: r.status };
@@ -91,7 +96,47 @@ export function createKeyService({ pool, config, storage }) {
           organization: d.organization, denomination: d.denomination, bishopId: d.bishopId, photo: d.photo,
           submittedAt: r.submittedAt, updatedAt: r.updatedAt };
       });
-      return { data, year, nextCursor: rows.length > limit ? rows[limit - 1].cursor : null };
+      return { data, year, nextCursor: rows.length > limit ? rows[limit - 1].page_id : null };
     },
   };
+}
+
+// Explicit application-data allowlist. Authentication/provider tables are never exposed.
+async function readBackend(pool, storage, url) {
+  const resource = url.pathname.replace(/\/$/, '').slice('/api/v1/backend/'.length);
+  if (resource === 'settings') {
+    const [[settings]] = await pool.query('SELECT current_year FROM dr_settings WHERE id=1');
+    const [years] = await pool.query('SELECT DISTINCT registration_year AS year FROM dr_registrations ORDER BY registration_year');
+    return { currentYear: settings.current_year, years: years.map(r => r.year), amounts: AMOUNTS };
+  }
+  if (resource === 'reference') return { organizations: ORGANIZATIONS, denominations: DENOMINATIONS,
+    bishops: JSON.parse(await readFile(new URL('../registration/reference-bishops.json', import.meta.url), 'utf8')) };
+  if (resource === 'media-url') {
+    const path = url.searchParams.get('path');
+    if (!path || path.length > 512) throw new HttpError(400, 'Supply a valid media path.');
+    const [[media]] = await pool.execute('SELECT object_key FROM dr_media WHERE object_key=?', [path]);
+    if (!media) throw new HttpError(404, 'Media not found.');
+    return { url: await storage.url(path), expiresIn: 3600 };
+  }
+  const resources = {
+    registrations: ['dr_registrations', "CONCAT(registration_year, ':', user_id)", 'data', true],
+    rosters: ['dr_rosters', 'id', 'data', true],
+    profiles: ['dr_profiles', 'id', 'data'],
+    users: ['dr_users', 'id', 'id,email'],
+    history: ['dr_audit', 'id', 'data'],
+    media: ['dr_media', 'object_key', 'object_key,owner_id,kind,content_type,size_bytes,created_at'],
+    keys: ['dr_api_keys', 'id', 'id,name,token_prefix,scopes,created_by,created_at,expires_at,revoked_at,last_used_at'],
+  };
+  const spec = resources[resource];
+  if (!spec) throw new HttpError(404, 'API endpoint not found.');
+  const [table, cursor, fields, annual] = spec;
+  const limit = Number(url.searchParams.get('limit') || 50), after = url.searchParams.get('after') || '';
+  const year = url.searchParams.has('year') ? Number(url.searchParams.get('year')) : null;
+  if (!Number.isInteger(limit) || limit < 1 || limit > 100 || after.length > 512 ||
+    (year !== null && (!annual || !Number.isInteger(year) || year < 2000 || year > 2200)))
+    throw new HttpError(400, 'Use limit 1–100, the returned cursor, and a valid year for annual records.');
+  const [rows] = await pool.query(`SELECT ${cursor} AS page_id,${fields} FROM ${table} WHERE ${cursor}>?${year === null ? '' : ' AND registration_year=?'} ORDER BY ${cursor} LIMIT ${limit + 1}`, year === null ? [after] : [after, year]);
+  return { data: rows.slice(0, limit).map(({ page_id, ...row }) => fields === 'data' ? parse(row.data) :
+    resource === 'keys' ? { ...metadata(row), createdBy: row.created_by } : row),
+    nextCursor: rows.length > limit ? rows[limit - 1].page_id : null, ...(annual ? { year } : {}) };
 }

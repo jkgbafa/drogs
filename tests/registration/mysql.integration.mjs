@@ -132,6 +132,26 @@ test('MySQL + private R2 transport: real persistence, authentication, scope, rol
     for (const method of ['POST', 'PUT', 'PATCH', 'DELETE']) assert.equal((await external('registrations', apiToken, method)).status, 405);
     assert.equal((await external('registrations', 'invalid-key')).status, 401);
     assert.equal((await call('action', '', { name: 'openYear', payload: { year: 2029 } }, { headers: { origin: config.origin, authorization: `Bearer ${apiToken}`, 'content-type': 'application/json' } })).status, 401);
+    const all = await call('keys', office.cookie, { name: 'Complete backend', scopes: ['backend:read'] });
+    assert.equal(all.status, 201);
+    const full = await external('backend/registrations', all.data.token);
+    assert.equal(full.status, 200);
+    assert.ok(full.data.data.some(r => r.proof === receipt), 'Full payment receipt reference included');
+    for (const resource of ['rosters', 'profiles', 'users', 'history', 'media', 'keys', 'settings', 'reference']) {
+      const result = await external(`backend/${resource}`, all.data.token);
+      assert.equal(result.status, 200, resource);
+      assert.equal(JSON.stringify(result.data).includes(storedKey.token_hash), false);
+      assert.equal(JSON.stringify(result.data).includes(all.data.token), false);
+    }
+    assert.equal((await external(`backend/media-url?path=${receipt}`, all.data.token)).status, 200);
+    assert.equal((await external('backend/registrations', apiToken)).status, 403);
+    assert.equal((await external('backend/sessions', all.data.token)).status, 404);
+    const fullPage = await external('backend/registrations?limit=1', all.data.token);
+    assert.ok(fullPage.data.nextCursor);
+    const nextFullPage = await external(`backend/registrations?limit=1&after=${encodeURIComponent(fullPage.data.nextCursor)}`, all.data.token);
+    assert.notDeepEqual(fullPage.data.data, nextFullPage.data.data);
+    for (const method of ['POST', 'PUT', 'PATCH', 'DELETE'])
+      assert.equal((await external('backend/registrations', all.data.token, method)).status, 405);
     const limited = await call('keys', office.cookie, { name: 'Limited', scopes: ['registrations:read'] });
     assert.equal((await external('rosters', limited.data.token)).status, 403);
     await pool.execute('UPDATE dr_api_keys SET expires_at=? WHERE id=?', [Date.now() - 1000, limited.data.key.id]);
