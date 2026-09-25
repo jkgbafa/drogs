@@ -60,6 +60,7 @@ def prepare_denomination_logos(root):
 def match_denomination_logo(denomination, index):
     target = normalize(denomination)
     aliases = {
+        'QODESH CITY CHURCHES': 'QODESH FAMILY CHURCH',
         'JESUS IS THE ROCK CHURCH': 'JESUS IS THE ROCK',
         'JESUS SAVIOUR OF THE WORLD CHURCH INTERNATIONAL': 'JESUS SAVIOUR OF THE WORLD',
         'EVERYTHING BY PRAYER CENTER': 'EVERYTHING BY PRAYER CHURCH',

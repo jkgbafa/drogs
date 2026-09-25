@@ -85,3 +85,8 @@ html[data-capture-protection="active"] img{-webkit-user-drag:none;pointer-events
   .denomination-logo { width: 54px; height: 54px; }
 }
 .profile-title{font-size:16px;color:var(--muted);margin:14px 0}.profile-denomination{display:flex;align-items:center;gap:16px;margin-top:18px}.profile-denomination .denomination-logo{width:72px;height:72px;object-fit:contain}.profile-portrait{object-fit:contain!important;object-position:center!important}
+.identity-copy .profile-denomination{display:flex;align-items:center;gap:20px;margin:24px 0;padding:20px 24px;border-radius:20px;background:rgba(8,134,136,.075);border:1px solid rgba(8,134,136,.10)}
+.identity-copy .profile-denomination .affiliation{margin:0;letter-spacing:0;text-transform:none;min-width:0}
+.denomination-name{display:block;font-size:clamp(21px,2.2vw,32px);line-height:1.2;font-weight:750;color:#087f82;overflow-wrap:anywhere}
+.organization-name{display:block;font-size:13px;line-height:1.4;margin-top:9px;letter-spacing:1.1px;font-weight:650;color:#55777b}
+@media(max-width:540px){.identity-copy .profile-denomination{padding:16px;gap:14px}.profile-denomination .denomination-logo{width:58px;height:58px}}

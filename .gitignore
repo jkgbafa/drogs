@@ -2,3 +2,8 @@
 node_modules/
 screenshots/
 __pycache__/
+.private/
+.env
+.env.*
+!.env.example
+supabase/.temp/

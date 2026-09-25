@@ -1,0 +1,6 @@
+project_id = "drogs"
+
+[functions.drogs-api]
+# Every non-OPTIONS request is authenticated with a scoped D.R.O.G.S bearer key
+# by handler.mjs. Supabase publishable keys are not accepted as D.R.O.G.S keys.
+verify_jwt = false

@@ -7,5 +7,6 @@
     const printShortcut=(event.metaKey||event.ctrlKey)&&key==='p';
     if(captureShortcut||printShortcut){event.preventDefault();event.stopImmediatePropagation()}
   },true);
-  document.documentElement.dataset.captureProtection='active';
+  // These browser gestures are deterrents, not OS screenshot protection.
+  document.documentElement.dataset.captureProtection='limited';
 })();
