@@ -1,4 +1,4 @@
-import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
+import { S3Client, PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import sharp from 'sharp';
 import { randomUUID } from 'node:crypto';
@@ -29,7 +29,7 @@ export async function assertOwnedMedia(conn, actor, path, kind) {
 }
 export function createStorage({ config, pool, client }) {
   const s3 = client || new S3Client({ region: 'auto', endpoint: `https://${config.r2.account}.r2.cloudflarestorage.com`,
-    credentials: { accessKeyId: config.r2.accessKeyId, secretAccessKey: config.r2.secretAccessKey },
+    credentials: { accessKeyId: config.r2.accessKeyId, secretAccessKey: config.r2.secretAccessKey, ...(config.r2.sessionToken ? { sessionToken: config.r2.sessionToken } : {}) },
     requestChecksumCalculation: 'WHEN_REQUIRED', responseChecksumValidation: 'WHEN_REQUIRED' });
   const Bucket = config.r2.bucket;
   return {
@@ -42,7 +42,7 @@ export function createStorage({ config, pool, client }) {
       try {
         await pool.execute('INSERT INTO dr_media (object_key,owner_id,kind,content_type,size_bytes,created_at) VALUES (?,?,?,?,?,?)', [Key, actor.id, kind, 'image/webp', body.length, Date.now()]);
       } catch (error) {
-        await s3.send(new DeleteObjectCommand({ Bucket, Key })).catch(() => {});
+        // Retain the unreferenced upload for office cleanup; this backend never deletes R2 objects.
         throw error;
       }
       return Key;

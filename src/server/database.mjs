@@ -9,8 +9,10 @@ export async function transaction(pool, fn) {
   finally { conn.release(); }
 }
 export async function migrate(pool) {
-  const sql = await readFile(new URL('../../mysql/001_registration.sql', import.meta.url), 'utf8');
-  for (const statement of sql.split(';').map(s => s.trim()).filter(Boolean)) await pool.query(statement);
+  for (const name of ['001_registration.sql', '002_api_keys.sql']) {
+    const sql = await readFile(new URL(`../../mysql/${name}`, import.meta.url), 'utf8');
+    for (const statement of sql.split(';').map(s => s.trim()).filter(Boolean)) await pool.query(statement);
+  }
 }
 const parse = row => typeof row.data === 'string' ? JSON.parse(row.data) : row.data;
 export async function readState(conn, lock = false) {

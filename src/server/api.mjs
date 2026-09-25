@@ -1,3 +1,4 @@
+import { createKeyService } from './api-keys.mjs';
 import { readFile } from 'node:fs/promises';
 import { applyAction, visibleState } from '../registration/model.mjs';
 import { transaction, readState, persistState } from './database.mjs';
@@ -33,9 +34,11 @@ async function jsonBody(request) {
 }
 const json = (value, status = 200, headers = {}) => Response.json(value, { status, headers: { 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff', ...headers } });
 export function createApi({ pool, config, auth, storage, logger = console }) {
+  const keys = createKeyService({ pool, config, storage });
   return async function handle(request) {
     try {
       const url = new URL(request.url), path = url.pathname.replace(/\/$/, ''), method = request.method;
+      if (path.startsWith('/api/v1/')) return json(await keys.read(request));
       if (!['GET', 'POST'].includes(method)) throw new HttpError(405, 'Method not allowed.');
       if (method === 'POST' && request.headers.get('origin') !== config.origin)
         throw new HttpError(403, 'Open the form on the configured website before continuing.');
@@ -58,6 +61,9 @@ export function createApi({ pool, config, auth, storage, logger = console }) {
       const actor = await auth.actor(request);
       if (path === '/api/registration/auth/me' && method === 'GET') return json(actor);
       if (!actor) throw new HttpError(401, 'Please sign in again.');
+      if (path === '/api/registration/keys' && method === 'GET') return json(await keys.list(actor));
+      if (path === '/api/registration/keys' && method === 'POST') return json(await keys.issue(actor, await jsonBody(request)), 201);
+      if (path === '/api/registration/keys/revoke' && method === 'POST') return json(await keys.revoke(actor, (await jsonBody(request)).id));
       if (path === '/api/registration/snapshot' && method === 'GET') {
         const state = await transaction(pool, conn => readState(conn));
         const view = visibleState(state, actor, references);

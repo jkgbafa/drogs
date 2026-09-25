@@ -1,4 +1,5 @@
 "use client";
+import ApiKeys from './ApiKeys';
 import {
   useEffect,
   useState,
@@ -270,6 +271,7 @@ export default function RegistrationApp({ office = false }) {
         "Payments",
         "Annual lists",
         "History",
+        ...(api.apiKeysAvailable ? ["API keys"] : []),
       ]
     : profile?.bishopApproved
       ? ["Registration", "My pastors", "Unclaimed", "History"]
@@ -443,11 +445,12 @@ export default function RegistrationApp({ office = false }) {
                             Payments:
                               "Review payment screenshots and confirm received commitments.",
                             History: "Previous cycles and a record of changes.",
+                            "API keys": "Give connected applications controlled, read-only access to DROGS.",
                           }[tab]
                         }
                       </p>
                     </div>
-                    <Field label="Annual cycle">
+                    {tab !== "API keys" && <Field label="Annual cycle">
                       <select
                         value={year}
                         onChange={(e) => setYear(Number(e.target.value))}
@@ -464,8 +467,9 @@ export default function RegistrationApp({ office = false }) {
                             <option key={y}>{y}</option>
                           ))}
                       </select>
-                    </Field>
+                    </Field>}
                   </div>
+                  {tab === "API keys" && <ApiKeys run={run} />}
                   {tab === "Directory" && (
                     <Directory records={scoped} directory={state.directory} />
                   )}

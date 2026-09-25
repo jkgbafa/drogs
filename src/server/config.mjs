@@ -27,6 +27,6 @@ export function configuration(env = process.env) {
       requireTLS: env.SMTP_SECURE !== 'true', auth: { user: env.SMTP_USER, pass: env.SMTP_PASSWORD },
       connectionTimeout: 15000, socketTimeout: 20000 },
     from: env.SMTP_FROM,
-    r2: { account: env.R2_ACCOUNT_ID, bucket: env.R2_BUCKET, accessKeyId: env.R2_ACCESS_KEY_ID, secretAccessKey: env.R2_SECRET_ACCESS_KEY },
+    r2: { account: env.R2_ACCOUNT_ID, bucket: env.R2_BUCKET, accessKeyId: env.R2_ACCESS_KEY_ID, secretAccessKey: env.R2_SECRET_ACCESS_KEY, sessionToken: env.R2_SESSION_TOKEN || undefined },
   };
 }

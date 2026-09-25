@@ -44,3 +44,19 @@ test('portrait access follows bishop assignment and excludes draft photos/receip
   assert.equal(canReadMedia(state, actor, media), false);
   assert.equal(canReadMedia(state, { id: 'office', office: true }, media), true);
 });
+
+test('R2 scoped session token is forwarded into signed image URLs', async () => {
+  const { createStorage } = await import('../../src/server/storage.mjs');
+  const config = configuration({ ...env, R2_SESSION_TOKEN: 'test-scoped-session-token' });
+  const storage = createStorage({ config });
+  const url = new URL(await storage.url('test-owner/portrait/test.webp'));
+  assert.equal(url.searchParams.get('X-Amz-Security-Token'), 'test-scoped-session-token');
+});
+
+test('application API key permissions reject write/delete scopes and invalid lifetimes', async () => {
+  const { keyOptions } = await import('../../src/server/api-keys.mjs');
+  assert.deepEqual(keyOptions({ name: 'Directory', scopes: ['registrations:read'], days: 30 }), { name: 'Directory', scopes: ['registrations:read'], days: 30 });
+  for (const scope of ['registrations:write', 'photos:delete', 'admin', '*'])
+    assert.throws(() => keyOptions({ name: 'Bad scope', scopes: [scope] }), /read permissions/);
+  assert.throws(() => keyOptions({ name: 'Bad expiry', scopes: ['photos:read'], days: 366 }), /Expiry/);
+});

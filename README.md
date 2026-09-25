@@ -4,7 +4,7 @@ This branch replaces the renewal questionnaire with account-based annual registr
 
 ## Current delivery
 
-The Hostinger deployment uses **MySQL + private Cloudflare R2**, with registration at `https://drogsdagministry.org/` and administration at `/admin`. See [HOSTINGER.md](HOSTINGER.md) for the deployment steps and [HOSTINGER.env.example](HOSTINGER.env.example) for all environment variables. The server integration is implemented; production credentials, admin emails, migrations and live connection checks must be completed before rollout.
+The Hostinger deployment uses **MySQL + private Cloudflare R2**, with registration at `https://drogs.dagministry.org/` and administration at `/admin`. See [HOSTINGER.md](HOSTINGER.md) for the deployment steps and [HOSTINGER.env.example](HOSTINGER.env.example) for all environment variables. The server integration is implemented; production credentials, admin emails, migrations and live connection checks must be completed before rollout.
 
 The published preview operates as a clearly labelled **browser-only demo** separately from the Hostinger backend. The entrance password is still **1234**, on both the portal and `/admin/`. Email addresses select demo accounts; no message is sent and this is not secure authentication. Do not use real registration information in the demo. Demo uploads are stored in IndexedDB, while registrations use `drogs-registration-v1`. Neither the old `drogs-2027` key nor the reconciled legacy source data is read or overwritten by the new flow.
 
@@ -57,3 +57,7 @@ Browser checks use isolated browser storage and sample accounts, preserving the 
 The source branch is `codex/annual-registration` in `theflowchurch/drogs`. CI validates it and produces a `registration-site` artifact; it has no permissions to replace the old Pages site. The separate `jkgbafa/drogs-registration` repository serves only the tested static export at `https://jkgbafa.github.io/drogs-registration/`. It contains no legacy directories or source contact data. Publish a tested `out/` build to that repository’s `main` branch, including `.nojekyll`. Only the mitre and two attire examples are copied into the public assets; original portrait files remain in the source repository.
 
 The registration form replaces Church with an organization-dependent Denomination dropdown; its complete choices are in [DENOMINATIONS.md](DENOMINATIONS.md). First Love includes its main church and the six supplied affiliated denominations. DHMM, FLOW and Healing Jesus Campaign disable and clear the denomination. The review screen places the applicant’s image beside the role-specific example and requires an explicit attire acknowledgement before submission, enforced by both the local model and SQL RPC. Bishops must wear their official red jacket; a collar alone is insufficient. This is a human confirmation, not automated image classification. Historical submitted records remain unchanged.
+
+## Application API keys
+
+Office users can issue scoped, expiring, revocable read-only keys under `/admin` → API keys. Other servers use these to read submitted registrations, annual lists or portraits from DROGS. They cannot change or delete data. See [API.md](API.md) for endpoints and permissions.

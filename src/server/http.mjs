@@ -5,7 +5,7 @@ export function requestHandler({ origin, api, nextHandler }) {
     res.setHeader('Referrer-Policy', 'same-origin');
     res.setHeader('X-Frame-Options', 'DENY');
     const path = (req.url || '/').split('?')[0];
-    if (!path.startsWith('/api/registration/')) return nextHandler(req, res);
+    if (!path.startsWith('/api/registration/') && !path.startsWith('/api/v1/')) return nextHandler(req, res);
     try {
       const request = new Request(new URL(req.url, origin), {
         method: req.method, headers: req.headers,

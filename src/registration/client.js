@@ -167,3 +167,8 @@ export async function mediaUrl(path) {
 }
 export const referenceImage = (role) =>
   `${process.env.NEXT_PUBLIC_BASE_PATH || ""}/${role === "bishop" ? "assets/outreach/brian-masuku.png" : "assets/pastors/reconciled-5.webp"}`;
+
+export const apiKeysAvailable = mysqlBackend;
+export const listKeys = () => server('keys');
+export const issueKey = input => server('keys', input);
+export const revokeKey = id => server('keys/revoke', { id });

@@ -104,6 +104,41 @@ test('MySQL + private R2 transport: real persistence, authentication, scope, rol
     for (let i = 0; i < 5; i++) assert.equal((await call('auth/verify', '', { email: 'locked@example.com', token: wrong })).status, 401);
     assert.equal((await call('auth/verify', '', { email: 'locked@example.com', token: code })).status, 401, 'locked after five failures');
     assert.equal((await call('auth/request', '', { email: 'locked@example.com' })).status, 429);
+    // Application API keys are a separate, read-only identity from admin cookies.
+    assert.equal((await call('keys', bishop.cookie)).status, 403);
+    assert.equal((await call('keys', bishop.cookie, { name: 'Forbidden', scopes: ['registrations:read'] })).status, 403);
+    assert.equal((await call('keys', office.cookie, { name: 'Delete', scopes: ['registrations:delete'] })).status, 400);
+    const issued = await call('keys', office.cookie, { name: 'Directory integration', scopes: ['registrations:read', 'rosters:read', 'photos:read'], days: 30 });
+    assert.equal(issued.status, 201, JSON.stringify(issued.data));
+    const apiToken = issued.data.token;
+    assert.match(apiToken, /^drogs_live_[A-Za-z0-9_-]{43}$/);
+    const [[storedKey]] = await pool.execute('SELECT token_hash FROM dr_api_keys WHERE id=?', [issued.data.key.id]);
+    assert.notEqual(storedKey.token_hash, apiToken);
+    const listedKeys = await call('keys', office.cookie);
+    assert.equal(JSON.stringify(listedKeys.data).includes(apiToken), false);
+    async function external(path, token = apiToken, method = 'GET') {
+      const response = await api(new Request(`${config.origin}/api/v1/${path}`, { method, headers: { authorization: `Bearer ${token}` } }));
+      return { status: response.status, data: await response.json() };
+    }
+    const page1 = await external('registrations?year=2027&limit=1');
+    assert.equal(page1.status, 200); assert.equal(page1.data.data.length, 1); assert.ok(page1.data.nextCursor);
+    const page2 = await external(`registrations?year=2027&limit=1&after=${page1.data.nextCursor}`);
+    assert.notEqual(page1.data.data[0].userId, page2.data.data[0].userId);
+    assert.equal(page1.data.data[0].dob, undefined);
+    assert.equal(page1.data.data[0].proof, undefined);
+    assert.equal((await external('rosters?year=2027')).data.data.length, 1);
+    assert.equal((await external(`photos?path=${pastorPhoto}`)).status, 200);
+    assert.equal((await external(`photos?path=${receipt}`)).status, 404);
+    for (const method of ['POST', 'PUT', 'PATCH', 'DELETE']) assert.equal((await external('registrations', apiToken, method)).status, 405);
+    assert.equal((await external('registrations', 'invalid-key')).status, 401);
+    assert.equal((await call('action', '', { name: 'openYear', payload: { year: 2029 } }, { headers: { origin: config.origin, authorization: `Bearer ${apiToken}`, 'content-type': 'application/json' } })).status, 401);
+    const limited = await call('keys', office.cookie, { name: 'Limited', scopes: ['registrations:read'] });
+    assert.equal((await external('rosters', limited.data.token)).status, 403);
+    await pool.execute('UPDATE dr_api_keys SET expires_at=? WHERE id=?', [Date.now() - 1000, limited.data.key.id]);
+    assert.equal((await external('registrations', limited.data.token)).status, 401);
+    assert.equal((await call('keys/revoke', bishop.cookie, { id: issued.data.key.id })).status, 403);
+    assert.equal((await call('keys/revoke', office.cookie, { id: issued.data.key.id })).status, 200);
+    assert.equal((await external('registrations')).status, 401);
     if (process.env.TEST_BROWSER === '1') {
       const { default: next } = await import('next');
       config.origin = 'http://127.0.0.1:4208'; config.secure = false;

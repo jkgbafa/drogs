@@ -63,6 +63,22 @@ with sync_playwright() as p:
         page.get_by_role('button',name='Bishop approvals',exact=True).click()
         page.get_by_role('button',name='Browser Bishop').click()
         expect(page.get_by_text('Browser Bishop',exact=True).first).to_be_visible()
+        # Close the registration dialog before managing integration keys.
+        page.get_by_role('button',name='Close',exact=True).click()
+        page.get_by_role('button',name='API keys',exact=True).click()
+        page.get_by_label('Application name',exact=True).fill('Browser integration')
+        page.get_by_role('button',name='Create API key',exact=True).click()
+        expect(page.get_by_label('New API key',exact=True)).to_be_visible()
+        key = page.get_by_label('New API key',exact=True).input_value()
+        assert key.startswith('drogs_live_')
+        page.get_by_role('button',name='I’ve saved this key',exact=True).click()
+        expect(page.get_by_label('New API key',exact=True)).not_to_be_visible()
+        page.reload();page.wait_for_load_state('networkidle')
+        page.get_by_role('button',name='API keys',exact=True).click()
+        expect(page.get_by_role('heading',name='Browser integration',exact=True)).to_be_visible()
+        page.get_by_role('button',name='Revoke Browser integration',exact=True).click()
+        page.get_by_role('button',name='Confirm revoke',exact=True).click()
+        expect(page.get_by_text('API key revoked.',exact=True)).to_be_visible()
         assert errors == [], errors
         print('MySQL browser flow passed: emailed sign-in, R2 portrait, draft reload, submission, mobile layout and admin access to shared registration.')
     except Exception:
