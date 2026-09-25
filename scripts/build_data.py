@@ -6,12 +6,15 @@ import json
 import re
 import shutil
 import unicodedata
+from denomination_assets import prepare_denomination_logos, match_denomination_logo, normalize as normalize_denomination
 
 
-SOURCE = Path("/Users/joshuagbafa/Downloads/Bishop's project/BISHOPS PICTURES")
+SOURCE = Path("/Users/joshuagbafa/Downloads/Bishop's project/MASTER PORTRAITS IMPORT/PASTORS PICTURES")
 WORKBOOK = Path("/Users/joshuagbafa/Downloads/PASTORS DATA.xlsx")
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "assets" / "bishops"
+if not SOURCE.exists() or any(Path('/Users/joshuagbafa/Downloads').glob('*.crdownload')):
+    raise SystemExit('Finish and extract the master download before rebuilding portraits.')
 OUT.mkdir(parents=True, exist_ok=True)
 for old_image in OUT.glob("*.jpg"):
     old_image.unlink()
@@ -26,6 +29,15 @@ def name_case(value):
     for part in clean(value).split():
         words.append("-".join(piece.capitalize() for piece in part.split("-")))
     return " ".join(words)
+
+
+def safe_age(value):
+    text = clean(value)
+    try:
+        age = int(float(text))
+        return str(age) if 18 <= age <= 100 else ""
+    except (TypeError, ValueError):
+        return ""
 
 
 def normalize(value):
@@ -95,22 +107,40 @@ for values in rows:
         continue
     denomination = clean(row.get("DENOMINATION"))
     source_group = "first_love" if "FIRST LOVE" in denomination.upper() else "ud"
-    if "FIRST LOVE" in denomination.upper():
-        denomination = "PASTORAL NETWORK"
     branch = re.sub(r"(?i)first\s*love", "Central Church", name_case(row.get("BRANCH")))
     people.append({
         "sourceId": clean(row.get("PASTORID")),
         "name": name_case(row.get("FULLNAME")),
-        "organization": denomination or "Leadership Network",
+        "denomination": denomination or "Leadership Network",
         "region": name_case(row.get("COUNTRY")) or "International",
         "branch": branch,
         "sourceStatus": clean(row.get("PASTORSTATUS")) or "ACTIVE",
         "yearConsecrated": clean(row.get("YEARCONSECRATED")),
         "gender": clean(row.get("GENDER")).upper(),
         "sourceGroup": source_group,
+        "age": safe_age(row.get("AGE")),
+        "mobile": clean(row.get("MOBILE")),
+        "whatsapp": clean(row.get("WHATSAPP NUMBER")),
+        "email": clean(row.get("ALTERNATEEMAIL")),
+        "yearAppointed": clean(row.get("YEARAPPOINTED")),
+        "yearOrdained": clean(row.get("YEARORDAINED")),
+        "adminRank": clean(row.get("ADMINRANK")),
+        "ministryRank": clean(row.get("MINISTRYRANK")),
+        "statusRank": clean(row.get("STATUSRANK")),
+        "functionsRank": clean(row.get("FUNCTIONSRANK")),
+        "council": clean(row.get("COUNCIL")),
+        "diocese": clean(row.get("DIOCESE")),
+        "city": name_case(row.get("CITY")),
+        "state": name_case(row.get("STATE")),
+        "address": clean(row.get("ADDRESS")),
+        "qualification": clean(row.get("QUALIFICATION")),
+        "profession": clean(row.get("PROFESSION")),
+        "occupation": clean(row.get("OCCUPATION")),
+        "maritalStatus": clean(row.get("MARITALSTATUS")),
     })
 
 photos = usable_images()
+denomination_logos = prepare_denomination_logos(ROOT)
 report = []
 entries = []
 for person in people:
@@ -123,7 +153,7 @@ for person in people:
     chosen = candidates[0] if candidates and candidates[0][0] >= .72 else None
     first_love_candidates = [
         item for item in candidates
-        if "FIRST LOVE BISHOPS RED JACKET" in str(item[1]["path"]).upper()
+        if "FIRST LOVE" in str(item[1]["path"]).upper()
     ]
     first_love_candidates.sort(key=lambda item: item[0], reverse=True)
     first_love_by_folder = bool(first_love_candidates and first_love_candidates[0][0] >= .72)
@@ -148,12 +178,15 @@ for person in people:
     source_image = str(chosen[1]["path"].relative_to(SOURCE)) if chosen else ""
     first_love = first_love_by_folder or person["sourceGroup"] == "first_love"
     honorific = "Mother" if first_love and person["gender"] == "FEMALE" else ""
-    designation = "UO-FLC190" if first_love else "UD-OLGC" if person["gender"] == "FEMALE" else ""
+    designation = "UD-UO-FLC190" if first_love else "UD-OLGCA"
+    organization = designation
     code = len(entries) + 1
     entries.append({
         "code": code,
         "name": person["name"],
-        "organization": person["organization"],
+        "organization": organization,
+        "denomination": person["denomination"],
+        "denominationLogo": denomination_logos.get(normalize_denomination('FIRST LOVE CHURCH WORLDWIDE')) if first_love else match_denomination_logo(person["denomination"], denomination_logos),
         "region": person["region"],
         "branch": person["branch"],
         "image": image_path,
@@ -162,6 +195,26 @@ for person in people:
         "yearConsecrated": person["yearConsecrated"],
         "honorific": honorific,
         "designation": designation,
+        "gender": person["gender"],
+        "age": person["age"],
+        "mobile": person["mobile"],
+        "whatsapp": person["whatsapp"],
+        "email": person["email"],
+        "yearAppointed": person["yearAppointed"],
+        "yearOrdained": person["yearOrdained"],
+        "adminRank": person["adminRank"],
+        "ministryRank": person["ministryRank"],
+        "statusRank": person["statusRank"],
+        "functionsRank": person["functionsRank"],
+        "council": person["council"],
+        "diocese": person["diocese"],
+        "city": person["city"],
+        "state": person["state"],
+        "address": person["address"],
+        "qualification": person["qualification"],
+        "profession": person["profession"],
+        "occupation": person["occupation"],
+        "maritalStatus": person["maritalStatus"],
     })
     report.append({
         "code": code,

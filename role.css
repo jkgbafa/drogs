@@ -65,15 +65,14 @@
 .logo-crop { overflow: visible; }
 .logo-crop img { position: static; width: 100%; height: 100%; object-fit: contain; }
 .receipt-logo { display: block; width: 86px; height: 104px; margin: 0 auto 18px; object-fit: contain; object-position: center; }
-.designation { display: inline-block; margin: -6px 0 20px; padding: 7px 11px; border-radius: 999px; background: #e3f2ef; color: #087b7d; font-size: 11px; font-weight: 800; letter-spacing: .7px; }
+.identity-heading{display:flex;flex-direction:column-reverse;align-items:flex-start;gap:16px;margin-bottom:22px}.identity-heading h2{margin:0}.denomination-logo{width:72px;height:72px;object-fit:contain;flex:0 0 auto}.affiliation{margin-top:9px;color:#078688;font-size:13px;font-weight:800;letter-spacing:.3px}
 .transfer-apps{margin-top:28px;padding-top:28px;border-top:1px solid #dce5e6}.transfer-heading{display:flex;justify-content:space-between;align-items:end;gap:18px}.transfer-heading h2{font-size:30px;letter-spacing:1px;margin:7px 0 0}.transfer-heading h2 small{font-size:11px;letter-spacing:1px;color:#6d7c89}.transfer-heading button{border:1px solid #d6e0e2;background:#fff;border-radius:10px;padding:10px 12px;color:#567078;font-size:11px;font-weight:750}.transfer-apps>p{font-size:12px;color:#6c7b89;margin:12px 0 18px}.payment-app-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}.payment-app{min-height:58px;padding:12px;display:flex;align-items:center;justify-content:space-between;gap:8px;border:1px solid #dfe6e7;border-radius:11px;background:#f8faf9;color:#172436;text-decoration:none;font-size:12px;font-weight:800;transition:.18s ease}.payment-app:hover{border-color:#4ebbb5;background:#edf8f6;transform:translateY(-1px)}.payment-app i{font-style:normal;color:#0d8587}
+.payment-single{max-width:980px;margin:0 auto}.momo-instruction{font-size:15px;font-weight:750;color:#536c73;margin-bottom:8px}.payment-single .transfer-heading{align-items:center}.payment-single .transfer-heading h2{font-size:clamp(42px,7vw,76px);letter-spacing:-2px;line-height:1;margin:8px 0 4px}
+.app-mark{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;background:#fff;color:#087b7d;font-size:9px;letter-spacing:.2px;flex:0 0 auto;border:1px solid #e2e9e9}.app-mark img{width:20px;height:20px;object-fit:contain}.payment-app>span:nth-child(2){margin-right:auto}.method-icon{display:inline-grid!important;place-items:center;width:28px;height:28px;margin:0 9px 0 5px!important;border-radius:8px;background:#e3f2ef;color:#087b7d;font-size:13px}.proof-upload{margin-top:30px;padding-top:28px;border-top:1px solid #dce5e6}.proof-upload h3{font-size:20px;margin:9px 0 5px}.proof-upload>p{font-size:12px;color:#6c7b89}.proof-drop{margin-top:16px;border:1.5px dashed #9cbabc;border-radius:14px;background:#f4f9f8;min-height:110px;display:grid;place-items:center;align-content:center;gap:6px;cursor:pointer;color:#087b7d;font-weight:800}.proof-drop input{position:absolute;opacity:0;pointer-events:none}.proof-drop small{font-size:9px;color:#71858a;font-weight:500}.proof-preview{display:none;margin-top:14px;align-items:center;gap:12px;color:#566a72;font-size:11px}.proof-preview.ready{display:flex}.proof-preview img{width:76px;height:76px;border-radius:11px;object-fit:cover;border:1px solid #dce5e6}.proof-error{min-height:18px;margin-top:9px;color:#a4404e;font-size:11px}
+.gate-view .site-header,.gate-view footer,.home-view .site-header,.home-view footer{display:none}.gate-view .hero,.home-view .hero{padding-top:72px}.gate-logo{display:block;width:112px;height:132px;object-fit:contain;margin:0 auto 22px}.gate h1,.home-view .hero h1{margin:0 0 18px}.gate p{font-size:14px;letter-spacing:.6px}.gate .access-card{margin-top:30px}.portrait-watermark{position:absolute;right:14px;bottom:14px;padding:7px 10px;border-radius:8px;background:#07181db8;color:#fff;font-size:9px;font-weight:800;letter-spacing:1px;backdrop-filter:blur(8px);pointer-events:none}
 
 html[data-capture-protection="active"],html[data-capture-protection="active"] body{-webkit-user-select:none;user-select:none}
 html[data-capture-protection="active"] img{-webkit-user-drag:none;pointer-events:none}
-.privacy-shield{display:none;position:fixed;inset:0;z-index:99999;background:#07181d;color:#fff;place-items:center;align-content:center;gap:12px;text-align:center}
-.privacy-shield img{width:76px;height:92px;object-fit:contain}
-.privacy-shield strong{font-size:22px;letter-spacing:3px}.privacy-shield span{color:#9fb6b9;font-size:12px}
-body.privacy-hidden>*:not(.privacy-shield){visibility:hidden!important}body.privacy-hidden .privacy-shield{display:grid;visibility:visible!important}
 @media print{body>*{display:none!important}body::after{content:"D.R.O.G.S — private record";display:grid;min-height:100vh;place-items:center}}
 
 @media (max-width: 540px) {
@@ -82,4 +81,6 @@ body.privacy-hidden>*:not(.privacy-shield){visibility:hidden!important}body.priv
   .payment-app-grid { grid-template-columns: repeat(2,1fr); }
   .transfer-heading { align-items: flex-start; }
   .transfer-heading h2 { font-size: 24px; }
+  .identity-heading { align-items: flex-start; gap: 12px; }
+  .denomination-logo { width: 54px; height: 54px; }
 }
