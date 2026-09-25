@@ -110,3 +110,12 @@ html[data-capture-protection="active"] img{-webkit-user-drag:none;pointer-events
 .bank-source{display:inline-block;margin-top:18px;color:#087f82;font-size:13px;text-decoration:underline;text-underline-offset:3px}
 .copy-status{font-size:13px;color:#087f82;min-height:18px}
 @media(max-width:540px){.bank-details{padding:20px 16px}.bank-fields strong{font-size:18px}.payment-single .transfer-heading{flex-wrap:wrap}.gate-logo{width:90px;height:108px}}
+
+.confirmation-wrap{min-height:80svh;display:grid;place-items:center}
+.confirmation-card{width:min(760px,100%);text-align:center;padding:clamp(32px,6vw,72px)}
+.confirmation-card h1{font-size:clamp(32px,4vw,48px);line-height:1.12;letter-spacing:-1.5px;margin:24px 0 18px;overflow-wrap:anywhere}
+.confirmation-card p{color:var(--muted);font-size:17px;line-height:1.7;margin:12px auto;max-width:520px}
+.confirmation-actions{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-top:32px}
+.submission-spinner{display:block;width:32px;height:32px;margin:28px auto 18px;border:3px solid #deeeed;border-top-color:var(--teal);border-radius:50%;animation:submission-spin .75s linear infinite}
+@keyframes submission-spin{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.submission-spinner{animation:none}}
