@@ -9,7 +9,7 @@ Private annual commitment portal for church leaders and pastors, with a separate
 - 5,099 pastor records, including the supplied First Love roster
 - Separate `B` and `P` access-code sequences for Bishops and Pastors
 - UD and First Love organizations, denomination logos, and source-backed First Love groups
-- $100 leader fee and $50 pastor fee
+- $100 leader commitment and $50 pastor commitment
 
 ## Participant flow
 
