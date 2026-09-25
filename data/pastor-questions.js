@@ -1,4 +1,4 @@
-window.PASTOR_QUESTION_SET='pastor-2027-v3';
+window.PASTOR_QUESTION_SET='pastor-2027-v4';
 window.PASTOR_QUESTIONS=[
  {
   "id": "pastorBeliefs",
@@ -251,27 +251,7 @@ window.PASTOR_QUESTIONS=[
     "None"
    ],
    "reason": "This answer needs a conversation with leadership."
-  },
-  "followUps": [
-   {
-    "id": "pastorMinistryChurch",
-    "label": "Ministry / church",
-    "type": "input",
-    "when": "Yes"
-   },
-   {
-    "id": "pastorMinistryPosition",
-    "label": "Position",
-    "type": "input",
-    "when": "Yes"
-   },
-   {
-    "id": "pastorMinistryLocation",
-    "label": "Country / city",
-    "type": "input",
-    "when": "Yes"
-   }
-  ]
+  }
  },
  {
   "id": "pastorMinistryConnection",

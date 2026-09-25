@@ -14,7 +14,7 @@ test('new question sets contain ten questions, unique response fields, and conti
  assert.equal(q.PASTOR_QUESTIONS.at(-1).options.at(-1).value,'I wish to resign');
 });
 test('legacy question wording and separate version identifiers remain available',()=>{
- assert.equal(q.BISHOP_QUESTION_SET,'governance-2027-v4');assert.equal(q.PASTOR_QUESTION_SET,'pastor-2027-v3');
+ assert.equal(q.BISHOP_QUESTION_SET,'governance-2027-v4');assert.equal(q.PASTOR_QUESTION_SET,'pastor-2027-v4');
  assert(q.BISHOP_QUESTIONS_V1.some(x=>x.id==='standing'));
  assert(!q.BISHOP_QUESTIONS.some(x=>x.id==='standing'));
  assert(q.PASTOR_QUESTIONS_V1.some(x=>x.id==='pastorCalling'));
@@ -28,5 +28,5 @@ test('bishop questions 4, 6 and 8 stay intact and operational questions cover al
 });
 
 test('pastor question 4 accepts None without ministry detail fields',()=>{
- const question=q.PASTOR_QUESTIONS[3];assert.equal(question.id,'pastorActiveMinistry');assert(question.options.includes('None'));assert(question.followUps.every(field=>field.when==='Yes'));
+ const question=q.PASTOR_QUESTIONS[3];assert.equal(question.id,'pastorActiveMinistry');assert(question.options.includes('None'));assert.equal((question.followUps||[]).length,0);
 });
