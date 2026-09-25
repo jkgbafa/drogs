@@ -84,3 +84,4 @@ html[data-capture-protection="active"] img{-webkit-user-drag:none;pointer-events
   .identity-heading { align-items: flex-start; gap: 12px; }
   .denomination-logo { width: 54px; height: 54px; }
 }
+.profile-title{font-size:16px;color:var(--muted);margin:14px 0}.profile-denomination{display:flex;align-items:center;gap:16px;margin-top:18px}.profile-denomination .denomination-logo{width:72px;height:72px;object-fit:contain}.profile-portrait{object-fit:contain!important;object-position:center!important}

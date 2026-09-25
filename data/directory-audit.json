@@ -1,0 +1,116 @@
+{
+  "excluded": [
+    {
+      "name": "Dag Heward-Mills",
+      "oldCode": "B25",
+      "reason": "User requested exclusion; code not reassigned."
+    }
+  ],
+  "photoAssignmentsRemovedForReview": [
+    {
+      "code": 9,
+      "name": "Amelia Aidoo",
+      "previousSourceImage": "UD GHANA/CONVENERS/Bishop Samuel Baidoo/IMG_2746 [1FomKS6UwaG08onGwwPS6wzkoQ_bpC-sL].PNG"
+    },
+    {
+      "code": 23,
+      "name": "Christos Isaac Abbey",
+      "previousSourceImage": "BISHOPS PHOTOS/OTHER BISHOPS/B. CHRISTOS ABBEY/394A1405.jpg"
+    },
+    {
+      "code": 38,
+      "name": "Dennis Djagbletey",
+      "previousSourceImage": "UNITED JESUS/Bishop Dennis Djagblatey.png"
+    },
+    {
+      "code": 45,
+      "name": "Edwin Morgan Ogoe",
+      "previousSourceImage": "FIRST LOVE BISHOPS RED JACKET/Copy of EdwinMorganOgoeJr.jpg"
+    },
+    {
+      "code": 47,
+      "name": "Emmanuel . Baiden",
+      "previousSourceImage": "BISHOPS PHOTOS/OTHER BISHOPS/Bishop Emmanuel Badoe/BISHOP EMMANUEL BADOE [1Hw9-l8VMn8UEb5KKVd0OVffqNA7oyvmV].jpg"
+    },
+    {
+      "code": 58,
+      "name": "Eric Lamptey",
+      "previousSourceImage": "FIRST LOVE BISHOPS RED JACKET/Enoch Lamptey.jpg"
+    },
+    {
+      "code": 59,
+      "name": "Erica-Luka Aryee",
+      "previousSourceImage": "FIRST LOVE BISHOPS RED JACKET/LUCA ERICA ARYEE.jpeg"
+    },
+    {
+      "code": 79,
+      "name": "Henrietta Orleans-Lindsay",
+      "previousSourceImage": "FIRST LOVE BISHOPS RED JACKET/HENRIETTA ARIEL ORLEAN LINDSAY.jpeg"
+    },
+    {
+      "code": 86,
+      "name": "Jake Etrue Godwyll",
+      "previousSourceImage": "FIRST LOVE BISHOPS RED JACKET/JACOB ETRUE GODWYLL 1.JPG"
+    },
+    {
+      "code": 115,
+      "name": "Kwabena Appiah Denkyira",
+      "previousSourceImage": "FIRST LOVE BISHOPS RED JACKET/RUTH JANI APPIAH-DENKYIRA.jpeg"
+    },
+    {
+      "code": 116,
+      "name": "Kwabena Asare Asamoa",
+      "previousSourceImage": "UC/KWABENA ASAMOAH.jpg"
+    },
+    {
+      "code": 150,
+      "name": "Papa Kwesi Nyarkoh",
+      "previousSourceImage": "BISHOPS PHOTOS/OTHER BISHOPS [separate Drive folder]/PAA KWESI NYARKOH 2.jpg"
+    },
+    {
+      "code": 156,
+      "name": "Phillippa-Marka Coker",
+      "previousSourceImage": "UD EU/Sister Phillippa-Marker Coker 02 (2).jpg"
+    },
+    {
+      "code": 159,
+      "name": "Ransford Owusu",
+      "previousSourceImage": "BISHOPS PHOTOS/OTHER BISHOPS/Bishop Ransford [1C83R7fALpu-lAoOcZ4NkfadOFknLMqeY].jpg"
+    },
+    {
+      "code": 162,
+      "name": "Raymond Mensah",
+      "previousSourceImage": "BISHOPS PHOTOS/Raymond Stephens 2.jpg"
+    },
+    {
+      "code": 193,
+      "name": "Zoe-Andria Asamoah",
+      "previousSourceImage": "FIRST LOVE BISHOPS RED JACKET/ZOE-FREDA ANDREA ASAMOAH.jpeg"
+    }
+  ],
+  "confirmedCorrections": [
+    {
+      "name": "Adelaide Heward-Mills",
+      "organization": "UD-OLGC",
+      "photoSource": "BISHOPS PHOTOS/OTHER BISHOPS/ES Adelaide Heward-Mills.JPG"
+    },
+    {
+      "name": "Joshua Heward-Mills",
+      "code": 194,
+      "photoSource": "FIRST LOVE BISHOPS RED JACKET/Copy of Joshua Heward Mills .jpg"
+    },
+    {
+      "name": "Kiki Heward-Mills",
+      "code": 195,
+      "photoSource": "FIRST LOVE BISHOPS RED JACKET/KIKI HEWARD-MILLS.jpeg"
+    }
+  ],
+  "currentBishopCounts": {
+    "UD-OLGC": 171,
+    "UO-FLC190": 23
+  },
+  "sourceNotes": {
+    "workbook": "PASTORS DATA.xlsx: original bishop/consecrated records; prior photo-folder organization assignments remain provisional except user-confirmed corrections.",
+    "firstLovePDF": "61 named bishops in seven groups. Complete roster status awaiting confirmation."
+  }
+}

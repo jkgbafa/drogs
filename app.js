@@ -22,7 +22,7 @@ const cycle=()=>currentType==='bishop'?'leadership':'pastoral';
 const key=b=>`${currentType}:${b.code}`;
 const initials=name=>name.split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0]).join('').toUpperCase();
 const portrait=(person,className='',alt='')=>{const media=person.image?`<img class="${className}" src="${person.image}" alt="${esc(alt||person.name)}" loading="lazy" decoding="async">`:`<span class="avatar ${className}" aria-label="${esc(alt||person.name)}">${initials(person.name)}</span>`;return className==='profile-portrait'?`${media}<span class="portrait-watermark">D.R.O.G.S · ${currentType==='bishop'?'B':'P'}${person.code}</span>`:media};
-const displayName=person=>`${person.honorific?`${person.honorific} `:''}${person.name}`;
+const displayName=person=>person.name;
 const affiliation=person=>`${person.designation||person.organization}${person.denomination?` — ${person.denomination}`:''}`;
 const denominationLogo=(person,className='denomination-logo')=>person.denominationLogo?`<img class="${className}" src="${person.denominationLogo}" alt="${esc(person.denomination||person.organization)} logo" loading="lazy" decoding="async">`:'';
 const displayCode=person=>`${currentType==='bishop'?'B':'P'}${person.code}`;
@@ -37,27 +37,35 @@ const paymentAppLinks=()=>paymentApps.map(([name,url,domain])=>`<a class="paymen
 function loadRecords(){try{return JSON.parse(localStorage.getItem(STORE)||'{}')}catch{return {}}}
 function saveRecords(records){localStorage.setItem(STORE,JSON.stringify(records));window.dispatchEvent(new Event('storage'))}
 function seeded(){return{status:'not_started',paid:false,review:'Awaiting submission',updatedAt:null,responses:{},paymentMethod:null}}
-function record(b){return loadRecords()[key(b)]||seeded(b)}
+function record(b){const saved=loadRecords();return saved[key(b)]||(b.previousPastorCode?saved[`pastor:${b.previousPastorCode}`]:null)||seeded(b)}
 function put(b,patch){const all=loadRecords();all[key(b)]={...record(b),...patch,role:currentType};saveRecords(all)}
 
 function route(){if(sessionStorage.getItem(ENTRY)!=='yes')return gate();const hash=location.hash.slice(1);const saved=history.state?.drogsRecord;if(saved&&['profile','declaration','payment','receipt'].includes(hash)){currentType=saved.type;current=roster().find(person=>person.code===saved.code)}if(current&&['profile','declaration','payment','receipt'].includes(hash))history.replaceState({drogsRecord:{type:currentType,code:current.code}},'');if(hash==='declaration'&&current)return declaration();if(hash==='payment'&&current)return payment();if(hash==='receipt'&&current)return receipt();if(hash==='profile'&&current)return profile();home()}
 function viewClass(name){document.body.classList.remove('gate-view','home-view','record-view');document.body.classList.add(name)}
 function gate(){
   viewClass('gate-view');current=null;
-  app.innerHTML=`<section class="hero gate"><div class="hero-grid"></div><div class="hero-content"><img class="gate-logo" src="assets/mitre-transparent.png" alt=""><h1>D.R.O.G.S</h1><p>Private annual leadership commitment</p><form class="access-card" id="entry"><input id="entry-code" type="password" inputmode="numeric" placeholder="Enter password" aria-label="D.R.O.G.S password" autocomplete="current-password"><button>Enter <span>→</span></button></form><div class="error" id="entry-error" role="alert"></div></div></section>`;
+  app.innerHTML=`<section class="hero gate"><div class="hero-grid"></div><div class="hero-content"><img class="gate-logo" src="assets/mitre-transparent.png" alt=""><h1>D.R.O.G.S</h1><form class="access-card" id="entry"><input id="entry-code" type="password" inputmode="numeric" placeholder="Enter password" aria-label="D.R.O.G.S password" autocomplete="current-password"><button>Enter <span>→</span></button></form><div class="error" id="entry-error" role="alert"></div></div></section>`;
   document.querySelector('#entry').onsubmit=event=>{event.preventDefault();if(document.querySelector('#entry-code').value!=='1234'){document.querySelector('#entry-error').textContent='That password is not correct.';return}sessionStorage.setItem(ENTRY,'yes');home()};
 }
 function home(){
   viewClass('home-view');
-  app.innerHTML=`<section class="hero"><div class="hero-grid"></div><div class="hero-content"><div class="eyebrow">Private access · 2027</div><div class="role-switch" role="group" aria-label="Choose record type"><button data-role="bishop" class="${currentType==='bishop'?'active':''}">Bishops</button><button data-role="pastor" class="${currentType==='pastor'?'active':''}">Pastors</button></div><h1>D.R.O.G.S</h1><p>Enter your private code to open your annual record.</p><form class="access-card" id="access"><input id="code" inputmode="text" placeholder="${currentType==='bishop'?'B1':'P1'}" aria-label="Private access code" autocomplete="one-time-code"><button>Continue <span>→</span></button></form><div class="error" id="access-error" role="alert"></div></div></section>`;
-  document.querySelectorAll('[data-role]').forEach(button=>button.onclick=()=>{currentType=button.dataset.role;home()});
-  document.querySelector('#access').onsubmit=event=>{event.preventDefault();const raw=document.querySelector('#code').value.trim().toUpperCase().replace(/\s+/g,'');if(/^B\d+$/.test(raw))currentType='bishop';else if(/^P\d+$/.test(raw))currentType='pastor';const code=Number(raw.replace(/^[BP]/,''));current=roster().find(person=>person.code===code);if(!current){document.querySelector('#access-error').textContent='We could not find that private code. Use a code such as B1 or P1.';return}history.pushState({drogsRecord:{type:currentType,code:current.code}},'','#profile');route()};
+  app.innerHTML=`<section class="hero"><div class="hero-grid"></div><div class="hero-content"><h1>D.R.O.G.S</h1><form class="access-card" id="access"><input id="code" inputmode="text" placeholder="Enter your code here" aria-label="Enter your code here" autocomplete="one-time-code"><button>Continue <span>→</span></button></form><div class="error" id="access-error" role="alert"></div></div></section>`;
+  document.querySelector('#access').onsubmit=event=>{
+    event.preventDefault();
+    const raw=document.querySelector('#code').value.trim().toUpperCase().replace(/\s+/g,'');
+    if(!/^[BP]\d+$/.test(raw)){document.querySelector('#access-error').textContent='Enter your assigned B or P code.';return}
+    currentType=raw[0]==='B'?'bishop':'pastor';
+    const code=Number(raw.slice(1));
+    current=roster().find(person=>person.code===code);
+    if(!current){document.querySelector('#access-error').textContent='We could not find that code.';return}
+    history.pushState({drogsRecord:{type:currentType,code:current.code}},'','#profile');route();
+  };
 }
 function statusCopy(r){return{application:r.status==='submitted'?'Submitted':r.status==='draft'?'Draft saved':'Not started',payment:r.paid?'Paid':'Outstanding',review:r.review||'Awaiting submission'}}
 function profile(){
   viewClass('record-view');
   const r=record(current),s=statusCopy(r);
-  app.innerHTML=`<div class="wrap"><div class="topline"><div><div class="eyebrow">Your annual record</div><h1>Welcome, ${esc(displayName(current))}.</h1></div><button class="ghost" id="change">Use another code</button></div><section class="identity"><div class="portrait-panel">${portrait(current,'profile-portrait')}</div><div class="identity-copy"><div class="identity-heading">${denominationLogo(current)}<div><h2>${esc(displayName(current))}</h2><div class="affiliation">${esc(affiliation(current))}</div></div></div><p>Submit your annual declaration and confirm the annual fee. The D.R.O.G.S Office will review your submission and update the decision here.</p><div class="status-rail"><div><span>Application</span><b>${s.application}</b></div><div><span>Annual fee</span><b>${s.payment}</b></div><div><span>Church review</span><b>${s.review}</b></div></div>${r.status==='submitted'?`<button class="primary large" id="continue">${r.paid?'View receipt':'Continue to payment'} <span>→</span></button>`:`<button class="primary large" id="continue">Fill annual declaration <span>→</span></button>`}</div></section></div>`;
+  app.innerHTML=`<div class="wrap"><div class="topline"><div><div class="eyebrow">Your annual record</div><h1>Welcome, ${esc(displayName(current))}.</h1></div><button class="ghost" id="change">Use another code</button></div><section class="identity"><div class="portrait-panel">${portrait(current,'profile-portrait')}</div><div class="identity-copy"><div class="identity-heading"><div><h2>${esc(current.name)}</h2><div class="profile-title">${esc(current.title||'')}</div><div class="profile-denomination">${denominationLogo(current)}<div class="affiliation">${esc(affiliation(current))}</div></div></div></div><p>Submit your annual declaration and confirm the annual fee. The D.R.O.G.S Office will review your submission and update the decision here.</p><div class="status-rail"><div><span>Application</span><b>${s.application}</b></div><div><span>Annual fee</span><b>${s.payment}</b></div><div><span>Church review</span><b>${s.review}</b></div></div>${r.status==='submitted'?`<button class="primary large" id="continue">${r.paid?'View receipt':'Continue to payment'} <span>→</span></button>`:`<button class="primary large" id="continue">Fill annual declaration <span>→</span></button>`}</div></section></div>`;
   document.querySelector('#change').onclick=()=>{location.hash='home'};
   document.querySelector('#continue').onclick=()=>{location.hash=r.status==='submitted'?(r.paid?'receipt':'payment'):'declaration'};
 }

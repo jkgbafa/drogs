@@ -150,13 +150,13 @@ for person in people:
         if best >= .58:
             candidates.append((best, photo))
     candidates.sort(key=lambda item: item[0], reverse=True)
-    chosen = candidates[0] if candidates and candidates[0][0] >= .72 else None
+    chosen = candidates[0] if candidates and candidates[0][0] >= .99 else None
     first_love_candidates = [
         item for item in candidates
         if "FIRST LOVE" in str(item[1]["path"]).upper()
     ]
     first_love_candidates.sort(key=lambda item: item[0], reverse=True)
-    first_love_by_folder = bool(first_love_candidates and first_love_candidates[0][0] >= .72)
+    first_love_by_folder = bool(first_love_candidates and first_love_candidates[0][0] >= .99)
     if first_love_by_folder:
         chosen = first_love_candidates[0]
     image_path = None

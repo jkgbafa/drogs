@@ -247,7 +247,7 @@ for entry in entries:
         ((match_score(entry["name"], photos[index]["labels"]), index) for index in candidate_indices),
         reverse=True,
     )
-    chosen = ranked[0] if ranked and ranked[0][0] >= .80 else None
+    chosen = ranked[0] if ranked and ranked[0][0] >= .99 else None
     source_path = None
     if chosen:
         source_path = photos[chosen[1]]["path"]
