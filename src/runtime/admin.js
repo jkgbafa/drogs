@@ -1,3 +1,4 @@
+import { bulkApprovalBlock, prepareBulkApproval, submissionKey } from './bulk-review';
 import { progressStatus } from './progress-status';
 import { findRecord } from './person-records';
 import { portraitUrl } from './photo-url';
@@ -6,13 +7,15 @@ import { createDrogsSession } from './session';
 import { createEventScope } from './events';
 
 export function mountAdmin(host,directory) {
-const {BISHOPS,PASTORS,BISHOP_QUESTIONS,BISHOP_QUESTION_SET,BISHOP_QUESTIONS_V1,PASTOR_QUESTIONS,PASTOR_QUESTION_SET,PASTOR_QUESTIONS_V1,FLOW_BANK_ACCOUNTS}=directory;
+const {BISHOPS,PASTORS,BISHOP_QUESTIONS,BISHOP_QUESTION_SET,BISHOP_QUESTIONS_V1,BISHOP_QUESTIONS_V2,PASTOR_QUESTIONS,PASTOR_QUESTION_SET,PASTOR_QUESTIONS_V1,FLOW_BANK_ACCOUNTS}=directory;
 const events=createEventScope();
 const FIRST_LOVE_GROUPS=["FL OJ: ONLY JESUS","FL JF: JESUS FIRST","FL EU: SERVE JESUS","FL UK: CHOOSE JESUS","FL CI: JESUS NOW","FL NA: JESUS FOREVER","FL KJ: KING JESUS"];
 const UD_GROUPS=['UA — United Africa','UI — United Islands','UD EU — Europe','UD GH — Ghana','UD NA — North America','UJ — United Jesus','ESC — Eschatos'];
 const personGroup=person=>person.organization==='UO-FLC190'?person.firstLoveGroup:person.udGroup;
 const root=host,STORE='drogs-2027';
 let activeView='directory',submissionRole='all',submissionQuery='';
+let submissionOrganization='',submissionDenomination='',submissionReadiness='all',bulkNotice='';
+const bulkSelected=new Set();
 let sidebarHidden=localStorage.getItem('drogs-sidebar-hidden')==='yes';
 let mode='cards',query='',adminType='bishop',openFilter=null,filterQuery='';
 const session=createDrogsSession('drogs-admin',()=>{document.querySelector('#backdrop')?.remove();document.body.style.overflow='';login()});
@@ -69,9 +72,9 @@ function denominationHeading(){
 function sidebarMarkup(){return `<aside class="sidebar"><div class="side-brand"><img src="../assets/mitre-transparent.png" alt=""><span><strong>D.R.O.G.S</strong><small>2027</small></span></div><nav class="side-nav"><button class="${activeView==='directory'?'active':''}" id="directory"><i></i>Directory</button><button class="${activeView==='submissions'?'active':''}" id="submissions"><i></i>Submissions</button><button class="${activeView==='resignations'?'active':''}" id="resignations"><i></i>Resignations</button></nav><div class="side-foot"><button id="logout">Sign out</button></div></aside>`}
 function bindNavigation(){
  document.querySelector('#toggle-sidebar').onclick=()=>{sidebarHidden=!sidebarHidden;localStorage.setItem('drogs-sidebar-hidden',sidebarHidden?'yes':'no');dashboard()};
- document.querySelector('#directory').onclick=()=>{activeView='directory';openFilter=null;dashboard()};
- document.querySelector('#submissions').onclick=()=>{activeView='submissions';submissionRole='all';submissionQuery='';openFilter=null;dashboard()};
- document.querySelector('#resignations').onclick=()=>{activeView='resignations';submissionRole='all';submissionQuery='';openFilter=null;dashboard()};
+ document.querySelector('#directory').onclick=()=>{bulkSelected.clear();activeView='directory';openFilter=null;dashboard()};
+ document.querySelector('#submissions').onclick=()=>{activeView='submissions';submissionRole='all';submissionQuery='';submissionOrganization='';submissionDenomination='';submissionReadiness='all';bulkSelected.clear();bulkNotice='';openFilter=null;dashboard()};
+ document.querySelector('#resignations').onclick=()=>{activeView='resignations';submissionRole='all';submissionQuery='';submissionOrganization='';submissionDenomination='';submissionReadiness='all';bulkSelected.clear();bulkNotice='';openFilter=null;dashboard()};
  document.querySelector('#logout').onclick=()=>session.signOut();
 }
 function submissionTime(value){
@@ -86,16 +89,67 @@ function submissionsPage(){
  const submitted=['bishop','pastor'].flatMap(type=>data(type).map(person=>({...person,type})))
    .filter(person=>(person.r.status==='submitted'||person.r.submittedAt)&&(!resignationOnly||wishesToResign(person.r)));
  const view=submitted.filter(person=>(submissionRole==='all'||person.type===submissionRole)&&
+   (!submissionOrganization||person.organization===submissionOrganization)&&(!submissionDenomination||person.denomination===submissionDenomination)&&
+   (submissionReadiness==='all'||(submissionReadiness==='ready'?!bulkApprovalBlock(person.r):person.r.review==='Approved'))&&
    (!submissionQuery||`${person.name} ${person.organization} ${person.region}`.toLowerCase().includes(submissionQuery.toLowerCase())))
    .sort((a,b)=>submissionTime(b.r.submittedAt)-submissionTime(a.r.submittedAt)||a.name.localeCompare(b.name));
- root.innerHTML=`<div class="shell ${sidebarHidden?'sidebar-collapsed':''}">${sidebarMarkup()}<section class="workspace"><header class="top"><button id="toggle-sidebar" class="sidebar-toggle" aria-label="${sidebarHidden?'Show sidebar':'Hide sidebar'}" aria-expanded="${!sidebarHidden}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></svg></button><div><h1>${resignationOnly?'Resignation requests':'Submissions'}</h1><p>${resignationOnly?'Requests for church review':'Latest submitted forms'} · Ghana time (GMT)</p></div></header><div class="submissions-toolbar"><div class="submission-role-filter" role="group" aria-label="Submission role">${[['all','Everyone'],['bishop','Bishops'],['pastor','Pastors']].map(([value,label])=>`<button data-submission-role="${value}" aria-pressed="${submissionRole===value}">${label}</button>`).join('')}</div><input id="submission-search" aria-label="Search submissions" placeholder="Search name or country" value="${esc(submissionQuery)}"></div><p class="submission-count">${view.length.toLocaleString()} ${resignationOnly?(view.length===1?'resignation request':'resignation requests'):(view.length===1?'submission':'submissions')}</p><div class="table-card"><div class="table-wrap"><table class="submission-table"><thead><tr><th>Name</th><th>Role</th><th>Organization</th><th>${resignationOnly?'Requested':'Submitted'} at · GMT</th><th>Response</th><th>Commitment</th><th>Review</th></tr></thead><tbody>${view.map(person=>`<tr data-submission-code="${person.code}" data-submission-type="${person.type}" tabindex="0"><td><button class="submission-person">${portrait(person,'person-photo')}<b>${esc(person.name)}</b></button></td><td>${esc(person.title||(person.type==='bishop'?'Bishop':'Pastor'))}</td><td>${esc(person.organization)}</td><td>${submissionTime(person.r.submittedAt)?`<time datetime="${esc(person.r.submittedAt)}">${submissionDate(person.r.submittedAt)}</time>`:'Time not recorded'}</td><td>${esc(person.r.responses?.intention||'Not specified')}</td><td>${tag(person.r.paid?'Paid':wishesToResign(person.r)?'Not required':'Outstanding',person.r.paid?'good':'warn')}</td><td>${tag(person.r.review,person.r.review==='Approved'?'good':'info')}</td></tr>`).join('')}</tbody></table>${view.length?'':`<div class="empty">${submitted.length?'No submissions match your search.':resignationOnly?'No resignation requests have been submitted.':'No forms have been submitted yet.'}</div>`}</div></div></section></div>`;
+ const eligible=view.filter(person=>!bulkApprovalBlock(person.r));
+ const eligibleKeys=new Set(eligible.map(submissionKey));
+ for(const key of bulkSelected)if(!eligibleKeys.has(key))bulkSelected.delete(key);
+ const denominations=[...new Set(submitted.filter(p=>!submissionOrganization||p.organization===submissionOrganization).map(p=>p.denomination).filter(Boolean))].sort();
+ const batchControls=resignationOnly?'':`<section class="bulk-workflow" aria-label="Bulk approval"><div class="bulk-intro"><div><h2>Approve a group</h2><p>1. Filter the submissions &nbsp; 2. Select people &nbsp; 3. Review and approve</p></div></div><div class="submission-filters"><label>Organization<select id="submission-organization"><option value="">All organizations</option>${['UD-OLGC','UO-FLC190'].map(value=>`<option value="${value}" ${submissionOrganization===value?'selected':''}>${value}</option>`).join('')}</select></label><label>Denomination<select id="submission-denomination"><option value="">All denominations</option>${denominations.map(value=>`<option value="${esc(value)}" ${submissionDenomination===value?'selected':''}>${esc(value)}</option>`).join('')}</select></label><label>Show<select id="submission-readiness">${[['all','All submissions'],['ready','Ready for approval'],['approved','Already approved']].map(([value,label])=>`<option value="${value}" ${submissionReadiness===value?'selected':''}>${label}</option>`).join('')}</select></label></div><p class="bulk-help">Bulk approval includes submitted, paid applications. Resignations and cases needing individual review are excluded. Review responses and receipts as needed before approving.</p><div class="bulk-actions"><label><input type="checkbox" id="select-all-submissions" ${eligible.length&&bulkSelected.size===eligible.length?'checked':''} ${eligible.length?'':'disabled'}> Select all ${eligible.length.toLocaleString()} ready in these results</label><span id="bulk-selection-count" aria-live="polite">${bulkSelected.size.toLocaleString()} selected</span><button id="clear-bulk-selection" class="bulk-secondary">Clear selection</button><button id="review-bulk" class="primary" ${bulkSelected.size?'':'disabled'}>Review selected (${bulkSelected.size.toLocaleString()})</button></div></section>`;
+ root.innerHTML=`<div class="shell ${sidebarHidden?'sidebar-collapsed':''}">${sidebarMarkup()}<section class="workspace"><header class="top"><button id="toggle-sidebar" class="sidebar-toggle" aria-label="${sidebarHidden?'Show sidebar':'Hide sidebar'}" aria-expanded="${!sidebarHidden}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></svg></button><div><h1>${resignationOnly?'Resignation requests':'Submissions'}</h1><p>${resignationOnly?'Requests for church review':'Latest submitted forms'} · Ghana time (GMT)</p></div></header><div class="submissions-toolbar"><div class="submission-role-filter" role="group" aria-label="Submission role">${[['all','Everyone'],['bishop','Bishops'],['pastor','Pastors']].map(([value,label])=>`<button data-submission-role="${value}" aria-pressed="${submissionRole===value}">${label}</button>`).join('')}</div><input id="submission-search" aria-label="Search submissions" placeholder="Search name or country" value="${esc(submissionQuery)}"></div>${batchControls}${bulkNotice?`<p class="bulk-notice" role="status">${esc(bulkNotice)}</p>`:''}<p class="submission-count">${view.length.toLocaleString()} ${resignationOnly?(view.length===1?'resignation request':'resignation requests'):(view.length===1?'submission':'submissions')}</p><div class="table-card"><div class="table-wrap"><table class="submission-table"><thead><tr>${resignationOnly?'':'<th>Select</th>'}<th>Name</th><th>Role</th><th>Organization</th><th>${resignationOnly?'Requested':'Submitted'} at · GMT</th><th>Response</th><th>Commitment</th><th>Review</th></tr></thead><tbody>${view.map(person=>`<tr data-submission-code="${person.code}" data-submission-type="${person.type}" tabindex="0">${resignationOnly?'':`<td class="submission-select"><input type="checkbox" data-bulk-key="${submissionKey(person)}" aria-label="Select ${esc(person.name)}" ${bulkSelected.has(submissionKey(person))?'checked':''} ${bulkApprovalBlock(person.r)?'disabled':''}>${bulkApprovalBlock(person.r)?`<small>${esc(bulkApprovalBlock(person.r))}</small>`:''}</td>`}<td><button class="submission-person">${portrait(person,'person-photo')}<b>${esc(person.name)}</b></button></td><td>${esc(person.title||(person.type==='bishop'?'Bishop':'Pastor'))}</td><td>${esc(person.organization)}<small class="cell-sub">${esc(person.denomination||'')}</small></td><td>${submissionTime(person.r.submittedAt)?`<time datetime="${esc(person.r.submittedAt)}">${submissionDate(person.r.submittedAt)}</time>`:'Time not recorded'}</td><td>${esc(person.r.responses?.intention||'Not specified')}</td><td>${tag(person.r.paid?'Paid':wishesToResign(person.r)?'Not required':'Outstanding',person.r.paid?'good':'warn')}</td><td>${tag(person.r.review,person.r.review==='Approved'?'good':'info')}</td></tr>`).join('')}</tbody></table>${view.length?'':`<div class="empty">${submitted.length?'No submissions match your search.':resignationOnly?'No resignation requests have been submitted.':'No forms have been submitted yet.'}</div>`}</div></div></section></div>`;
  bindNavigation();
- document.querySelectorAll('[data-submission-role]').forEach(button=>button.onclick=()=>{submissionRole=button.dataset.submissionRole;dashboard()});
- document.querySelector('#submission-search').oninput=event=>{const cursor=event.target.selectionStart;submissionQuery=event.target.value;dashboard();const input=document.querySelector('#submission-search');input.focus();input.setSelectionRange(cursor,cursor)};
+ document.querySelectorAll('[data-submission-role]').forEach(button=>button.onclick=()=>{bulkSelected.clear();bulkNotice='';submissionRole=button.dataset.submissionRole;dashboard()});
+ document.querySelector('#submission-search').oninput=event=>{const cursor=event.target.selectionStart;bulkSelected.clear();bulkNotice='';submissionQuery=event.target.value;dashboard();const input=document.querySelector('#submission-search');input.focus();input.setSelectionRange(cursor,cursor)};
+ if(!resignationOnly){
+  const updateSelection=()=>{
+   document.querySelector('#bulk-selection-count').textContent=`${bulkSelected.size.toLocaleString()} selected`;
+   const button=document.querySelector('#review-bulk');button.disabled=!bulkSelected.size;button.textContent=`Review selected (${bulkSelected.size.toLocaleString()})`;
+   const all=document.querySelector('#select-all-submissions');all.checked=!!eligible.length&&bulkSelected.size===eligible.length;all.indeterminate=bulkSelected.size>0&&bulkSelected.size<eligible.length;
+   document.querySelectorAll('[data-bulk-key]').forEach(input=>input.checked=bulkSelected.has(input.dataset.bulkKey));
+  };
+  document.querySelectorAll('[data-bulk-key]').forEach(input=>input.onchange=()=>{input.checked?bulkSelected.add(input.dataset.bulkKey):bulkSelected.delete(input.dataset.bulkKey);updateSelection()});
+  document.querySelector('#select-all-submissions').onchange=event=>{bulkSelected.clear();if(event.target.checked)eligible.forEach(person=>bulkSelected.add(submissionKey(person)));updateSelection()};
+  document.querySelector('#clear-bulk-selection').onclick=()=>{bulkSelected.clear();updateSelection()};
+  document.querySelector('#review-bulk').onclick=()=>reviewBulk(eligible.filter(person=>bulkSelected.has(submissionKey(person))));
+  for(const kind of ['organization','denomination','readiness'])document.querySelector(`#submission-${kind}`).onchange=event=>{
+   bulkSelected.clear();bulkNotice='';
+   if(kind==='organization'){submissionOrganization=event.target.value;submissionDenomination=''}
+   if(kind==='denomination')submissionDenomination=event.target.value;
+   if(kind==='readiness')submissionReadiness=event.target.value;
+   dashboard();
+  };
+  updateSelection();
+ }
  document.querySelectorAll('[data-submission-code]').forEach(row=>{
   const open=()=>{adminType=row.dataset.submissionType;clearFilters();drawer(Number(row.dataset.submissionCode),view)};
-  row.onclick=open;row.onkeydown=event=>{if(event.key==='Enter'){event.preventDefault();open()}};
+  row.onclick=event=>{if(!event.target.closest('.submission-select'))open()};row.onkeydown=event=>{if(event.key==='Enter'&&!event.target.closest('.submission-select')){event.preventDefault();open()}};
  });
+}
+function reviewBulk(people){
+ if(!people.length||!session.active())return;
+ const summary=new Map();
+ for(const p of people){const label=`${p.organization} · ${p.denomination||'Denomination not recorded'}`;summary.set(label,(summary.get(label)||0)+1)}
+ root.insertAdjacentHTML('beforeend',`<dialog id="bulk-dialog" class="bulk-dialog" aria-labelledby="bulk-title"><div class="eyebrow">Review selection</div><h2 id="bulk-title">Approve ${people.length.toLocaleString()} ${people.length===1?'application':'applications'}?</h2><p>These people will be marked Approved. Their responses, receipts and existing review notes will be kept.</p><ul class="bulk-summary">${[...summary].map(([name,count])=>`<li><span>${esc(name)}</span><strong>${count.toLocaleString()}</strong></li>`).join('')}</ul><details><summary>See all ${people.length.toLocaleString()} selected names</summary><ol class="bulk-names">${people.map(person=>`<li><b>${esc(person.name)}</b><span>${esc(person.title||person.type)} · ${esc(person.organization)} · ${esc(person.denomination||'')}</span></li>`).join('')}</ol></details><p id="bulk-error" role="alert"></p><div class="bulk-dialog-actions"><button id="cancel-bulk" class="bulk-secondary">Cancel</button><button id="confirm-bulk" class="primary">Approve ${people.length.toLocaleString()}</button></div></dialog>`);
+ const dialog=document.querySelector('#bulk-dialog');dialog.showModal();
+ const close=()=>{dialog.close();dialog.remove();document.querySelector('#review-bulk')?.focus()};
+ dialog.oncancel=event=>{event.preventDefault();close()};
+ document.querySelector('#cancel-bulk').onclick=close;
+ document.querySelector('#confirm-bulk').onclick=()=>{
+  if(!session.active()){close();login();return}
+  const button=document.querySelector('#confirm-bulk');button.disabled=true;
+  try{
+   const fresh=JSON.parse(localStorage.getItem(STORE)||'{}');
+   const next=prepareBulkApproval(fresh,people,{timestamp:new Date().toISOString(),batchId:crypto.randomUUID()});
+   localStorage.setItem(STORE,JSON.stringify(next));
+   close();bulkSelected.clear();bulkNotice=`${people.length.toLocaleString()} ${people.length===1?'application approved':'applications approved'}.`;dashboard();
+  }catch(error){
+   document.querySelector('#bulk-error').textContent=error.name==='QuotaExceededError'?'There is not enough browser storage to save these approvals. No approvals were saved.':error.message;
+   button.disabled=false;
+  }
+ };
+ document.querySelector('#cancel-bulk').focus();
 }
 function dashboard(){
  if(!session.active())return login();
@@ -123,7 +177,7 @@ function fact(labelText,value){return value&&value!=='N/A'?`<div><span>${labelTe
 function declarationAnswers(r,type){
  const responses=r.responses||{};
  const pastorForm=r.questionSet?.startsWith('pastor-')||Object.keys(responses).some(name=>name.startsWith('pastor'));
- const questions=pastorForm?(r.questionSet===PASTOR_QUESTION_SET?PASTOR_QUESTIONS:PASTOR_QUESTIONS_V1):(r.questionSet===BISHOP_QUESTION_SET?BISHOP_QUESTIONS:BISHOP_QUESTIONS_V1);
+ const questions=pastorForm?(r.questionSet===PASTOR_QUESTION_SET?PASTOR_QUESTIONS:PASTOR_QUESTIONS_V1):(r.questionSet===BISHOP_QUESTION_SET?BISHOP_QUESTIONS:r.questionSet==='governance-2027-v2'?BISHOP_QUESTIONS_V2:BISHOP_QUESTIONS_V1);
  const answer=(value,options=[])=>{
    if(value===undefined||value===null||value==='')return 'Not answered';
    const option=options.find(o=>typeof o==='object'&&o.value===value);

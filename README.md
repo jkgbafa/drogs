@@ -25,6 +25,8 @@ Participants enter the portal password and their assigned B/P code, which select
 
 Directory, Submissions and Resignations have separate views. Directory supports organization, denomination, group and status filters, tile/table views, and full-screen profiles. Submission profiles show the person's name and photo, declaration responses, submission time, payment proof and review controls. Detailed personal and ministry information remains in Directory.
 
+For bulk approval, open Submissions, filter by role, organization and denomination, then select individual checkboxes or all ready submissions in the results. Review the exact count and names before confirming. Bulk approval requires a submitted form and recorded payment; resignations, already approved records and cases requiring individual review are excluded. Changing filters clears the selection. Each batch rechecks the selected records and saves once, preserving responses, receipts and review notes, with a timestamp and batch ID in review history. These decisions use the same browser-local storage described below.
+
 Female members of the bishop category are titled Mother for UO-FLC190 and Episcopal Sister for UD-OLGC. The category remains available for filtering, separate from the person's title.
 
 The current reconciled directory contains 242 bishop-category records and 5,067 pastor records. These are imported roster counts, not a claim that every classification has been independently verified. Photo folders never establish a person's role. The audit in `data/directory-audit.json` tracks source reconciliation. At this update, 237 bishop records and 3,194 pastor records have linked portraits; unresolved matches are retained for review instead of guessed.
