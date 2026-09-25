@@ -27,7 +27,7 @@ Directory, Submissions and Resignations have separate views. Directory supports 
 
 Female members of the bishop category are titled Mother for UO-FLC190 and Episcopal Sister for UD-OLGC. The category remains available for filtering, separate from the person's title.
 
-The current reconciled directory contains 243 bishop-category records and 5,070 pastor records. These are imported roster counts, not a claim that every classification has been independently verified. Photo folders never establish a person's role. The audit in `data/directory-audit.json` tracks source reconciliation. At this update, 237 bishop records and 2,996 pastor records have linked portraits; unresolved matches are retained for review instead of guessed.
+The current reconciled directory contains 242 bishop-category records and 5,068 pastor records. These are imported roster counts, not a claim that every classification has been independently verified. Photo folders never establish a person's role. The audit in `data/directory-audit.json` tracks source reconciliation. At this update, 237 bishop records and 3,192 pastor records have linked portraits; unresolved matches are retained for review instead of guessed.
 
 ## Storage and security
 
@@ -46,3 +46,22 @@ DROGS_BASE_URL=http://localhost:4198/drogs npm run test:browser
 ```
 
 Browser checks cover login, forms, resignation routing, payment proof, confirmation, admin filters, submission responses and receipt previews, profile navigation, idle sign-out and mobile layout.
+
+## R2 portrait storage
+
+`scripts/r2_photos.py` uploads only linked bishop and pastor portraits, then checks object size and SHA-256 metadata. It uses content-addressed keys and preserves local originals. Install `boto3` in a local Python environment and provide credentials in `~/.config/drogs/r2.env` with owner-only permissions:
+
+```text
+R2_ACCOUNT_ID=your-account-id
+R2_BUCKET=drogs
+R2_ACCESS_KEY_ID=your-access-key-id
+R2_SECRET_ACCESS_KEY=your-secret-access-key
+```
+
+Run `python scripts/r2_photos.py --probe`, then `python scripts/r2_photos.py`. Successful uploads generate `data/photo-storage.json`. Set its `publicBaseUrl` to the bucket’s actual public HTTPS address after verifying anonymous image access, then rebuild. The S3 API endpoint is not a public image address. With no verified public address configured, the website continues loading the existing local portraits. Payment proof and source workbooks are never part of this upload.
+
+All 3,429 linked portraits have been uploaded to R2 and verified for object size and SHA-256 metadata. Live image links remain local until the bucket’s public development URL is supplied and anonymous image access is verified.
+
+Question definitions are versioned; older submissions retain the wording in `data/question-history.js`. The annual/monthly choice records a payment preference and does not create recurring payments.
+
+Portraits use proportional cover framing with per-image face positions in `data/portrait-framing.json`. The local macOS Vision helper `scripts/portrait-framing.swift` detects face rectangles for framing only; it does not identify people or alter source images.

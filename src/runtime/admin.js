@@ -1,8 +1,11 @@
+import { findRecord } from './person-records';
+import { portraitUrl } from './photo-url';
+import { portraitStyle } from './portrait-framing';
 import { createDrogsSession } from './session';
 import { createEventScope } from './events';
 
 export function mountAdmin(host,directory) {
-const {BISHOPS,PASTORS,BISHOP_QUESTIONS,PASTOR_QUESTIONS,PASTOR_QUESTION_SET,FLOW_BANK_ACCOUNTS}=directory;
+const {BISHOPS,PASTORS,BISHOP_QUESTIONS,BISHOP_QUESTION_SET,BISHOP_QUESTIONS_V1,PASTOR_QUESTIONS,PASTOR_QUESTION_SET,PASTOR_QUESTIONS_V1,FLOW_BANK_ACCOUNTS}=directory;
 const events=createEventScope();
 const FIRST_LOVE_GROUPS=["FL OJ: ONLY JESUS","FL JF: JESUS FIRST","FL EU: SERVE JESUS","FL UK: CHOOSE JESUS","FL CI: JESUS NOW","FL NA: JESUS FOREVER","FL KJ: KING JESUS"];
 const UD_GROUPS=['UA — United Africa','UI — United Islands','UD EU — Europe','UD GH — Ghana','UD NA — North America','UJ — United Jesus','ESC — Eschatos'];
@@ -18,7 +21,7 @@ const role=()=>adminType==='bishop'?'Bishop':'Pastor';
 const rolePlural=()=>adminType==='bishop'?'Bishops':'Pastors';
 const key=person=>`${adminType}:${person.code}`;
 const initials=name=>name.split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0]).join('').toUpperCase();
-const portrait=(person,className='')=>person.image?`<img class="${className}" src="../${person.image}" alt="${esc(person.name)}" loading="lazy" decoding="async">`:`<span class="admin-avatar ${className}">${initials(person.name)}</span>`;
+const portrait=(person,className='')=>person.image?`<img class="${className}" style="${portraitStyle(person.image,className==='person-photo'?1:.8)}" src="${esc(portraitUrl(person.image,'../'))}" alt="${esc(person.name)}" loading="lazy" decoding="async">`:`<span class="admin-avatar ${className}">${initials(person.name)}</span>`;
 const displayName=person=>person.name;
 const displayCode=person=>`${adminType==='bishop'?'B':'P'}${person.code}`;
 const affiliation=person=>person.organization;
@@ -30,11 +33,11 @@ const statusOptions=[['resignation','Wishes to resign'],['not_started','Not star
 const filterLabels={organization:'Organization',denomination:'Denomination',group:'Groups',status:'Status'};
 function records(){try{return JSON.parse(localStorage.getItem(STORE)||'{}')}catch{return{}}}
 function seeded(){return{status:'not_started',paid:false,review:'Awaiting submission',updatedAt:null,responses:{},paymentMethod:null}}
-function rec(person){const saved=records();return saved[key(person)]||(person.previousPastorCode?saved[`pastor:${person.previousPastorCode}`]:null)||(person.previousBishopCodes||[]).map(code=>saved[`bishop:${code}`]).find(Boolean)||seeded()}
+function rec(person){return findRecord(records(),person,adminType,seeded())}
 function save(person,patch){const all=records();all[key(person)]={...rec(person),...patch,role:adminType,updatedAt:new Date().toISOString()};localStorage.setItem(STORE,JSON.stringify(all));dashboard()}
 function status(r){if(r.status==='submitted'&&r.paid)return'complete';if(r.status==='submitted'&&!r.paid)return'submitted_unpaid';if(r.paid&&r.status!=='submitted')return'paid_unsubmitted';return r.status}
 function login(){root.innerHTML=`<section class="login"><form class="login-card" id="login"><img class="logo" src="../assets/mitre-transparent.png" alt=""><div class="eyebrow">D.R.O.G.S Office</div><h1>Administration</h1><p>Enter the office access code.</p><input class="field" id="pin" type="password" inputmode="numeric" placeholder="Access code" aria-label="Access code" autofocus><button class="primary">Enter D.R.O.G.S Office</button><div class="error" id="error"></div></form></section>`;document.querySelector('#login').onsubmit=event=>{event.preventDefault();if(document.querySelector('#pin').value!=='1234'){document.querySelector('#error').textContent='That access code is not correct.';return}session.start();dashboard()}}
-function data(type=adminType){const saved=records();return (type==='bishop'?BISHOPS:PASTORS).map(person=>({...person,r:saved[`${type}:${person.code}`]||(person.previousPastorCode?saved[`pastor:${person.previousPastorCode}`]:null)||(person.previousBishopCodes||[]).map(code=>saved[`bishop:${code}`]).find(Boolean)||seeded()}))}
+function data(type=adminType){const saved=records();return (type==='bishop'?BISHOPS:PASTORS).map(person=>({...person,r:findRecord(saved,person,type,seeded())}))}
 function statusMatches(person,value){const r=person.r;return(value==='resignation'&&wishesToResign(r))||value===status(r)||(value==='submitted'&&r.status==='submitted')||(value==='paid'&&r.paid)||(value==='unpaid'&&!r.paid&&!wishesToResign(r))||(value==='approved'&&r.review==='Approved')||(value==='ready'&&r.status==='submitted'&&r.paid&&r.review!=='Approved'&&!wishesToResign(r))}
 function categoryMatches(person){return(!selected.organization.size||selected.organization.has(person.organization))&&(!selected.denomination.size||selected.denomination.has(person.denomination))&&(!selected.group.size||selected.group.has(personGroup(person)))}
 function matches(person){return categoryMatches(person)&&(!selected.status.size||[...selected.status].some(value=>statusMatches(person,value)))&&(!query||`${person.name} ${person.title||''} ${person.organization} ${person.denomination||''} ${person.region} ${displayCode(person)}`.toLowerCase().includes(query.toLowerCase()))}
@@ -59,7 +62,7 @@ function denominationHeading(){
   const belongs=p=>p.denomination===name&&(!selected.organization.size||selected.organization.has(p.organization));
   const bishops=BISHOPS.filter(belongs),pastors=PASTORS.filter(belongs),person=bishops[0]||pastors[0];
   const organizations=[...new Set([...bishops,...pastors].map(p=>p.organization))];
-  return `<section class="denomination-heading" aria-label="Selected denomination">${person?denominationLogo(person,'denomination-heading-logo'):''}<div><h2>${esc(name)}</h2><p>${organizations.map(esc).join(' · ')}</p><div class="denomination-totals"><button data-directory-role="bishop"><strong>${bishops.length.toLocaleString()}</strong> bishops</button><button data-directory-role="pastor"><strong>${pastors.length.toLocaleString()}</strong> pastors</button></div></div></section>`;
+  return `<section class="denomination-heading" aria-label="Selected denomination"><div class="denomination-identity">${person?denominationLogo(person,'denomination-heading-logo'):''}<div><h2>${esc(name)}</h2><p>${organizations.map(esc).join(' · ')}</p></div></div><div class="denomination-totals"><button data-directory-role="bishop" data-directory-denomination="${esc(name)}" aria-label="View ${bishops.length} bishops in ${esc(name)}"><span>Bishops</span><strong>${bishops.length.toLocaleString()}</strong><small>View bishops <i aria-hidden="true">↗</i></small></button><button data-directory-role="pastor" data-directory-denomination="${esc(name)}" aria-label="View ${pastors.length} pastors in ${esc(name)}"><span>Pastors</span><strong>${pastors.length.toLocaleString()}</strong><small>View pastors <i aria-hidden="true">↗</i></small></button></div></section>`;
  }).join('');
 }
 function sidebarMarkup(){return `<aside class="sidebar"><div class="side-brand"><img src="../assets/mitre-transparent.png" alt=""><span><strong>D.R.O.G.S OFFICE</strong><small>2027</small></span></div><nav class="side-nav"><button class="${activeView==='directory'?'active':''}" id="directory"><i></i>Directory</button><button class="${activeView==='submissions'?'active':''}" id="submissions"><i></i>Submissions</button><button class="${activeView==='resignations'?'active':''}" id="resignations"><i></i>Resignations</button></nav><div class="side-foot"><button id="logout">Sign out</button></div></aside>`}
@@ -110,18 +113,23 @@ function dashboard(){
  document.querySelectorAll('[data-view]').forEach(button=>button.onclick=()=>{mode=button.dataset.view;openFilter=null;dashboard()});
  document.querySelectorAll('[data-role]').forEach(button=>button.onclick=()=>{adminType=button.dataset.role;openFilter=null;dashboard()});
  document.querySelectorAll('[data-filter]').forEach(button=>button.onclick=()=>{selected.status.clear();if(button.dataset.filter!=='all')selected.status.add(button.dataset.filter);dashboard()});
- document.querySelectorAll('[data-directory-role]').forEach(button=>button.onclick=()=>{adminType=button.dataset.directoryRole;openFilter=null;dashboard()});
+ document.querySelectorAll('[data-directory-role]').forEach(button=>button.onclick=()=>{adminType=button.dataset.directoryRole;selected.denomination=new Set([button.dataset.directoryDenomination]);selected.group.clear();selected.status.clear();query='';openFilter=null;dashboard()});
  document.querySelectorAll('[data-code]').forEach(element=>{element.onclick=()=>drawer(Number(element.dataset.code));if(element.tagName==='TR')element.onkeydown=event=>{if(event.key==='Enter')drawer(Number(element.dataset.code))}});
 }
 events.listen(document,'click',event=>{if(openFilter&&!event.target.closest('.filter-control')&&!event.target.closest('#backdrop')){openFilter=null;dashboard()}});
 events.listen(document,'keydown',event=>{if(event.key==='Escape'&&openFilter){openFilter=null;dashboard()}});
 function fact(labelText,value){return value&&value!=='N/A'?`<div><span>${labelText}</span><b>${esc(value)}</b></div>`:''}
 function declarationAnswers(r,type){
- const responses=r.responses||{},pastorForm=r.questionSet===PASTOR_QUESTION_SET||Object.keys(responses).some(name=>name.startsWith('pastor'));
- const questions=pastorForm?PASTOR_QUESTIONS:BISHOP_QUESTIONS;
- const answer=value=>value===undefined||value===null||value===''?'Not answered':typeof value==='boolean'?(value?'Yes':'No'):String(value);
- const known=new Set([...questions.map(q=>q.id),'declaration','disclosure','intentionNote']);
- return `<ol class="response-list">${questions.map(q=>`<li><h3>${esc(typeof q.title==='function'?q.title(type==='pastor'?'pastor':'leader'):q.title)}</h3><p>${esc(answer(responses[q.id]))}</p></li>`).join('')}</ol><div class="response-notes"><h3>Additional information about continuing or resigning</h3><p>${esc(answer(responses.intentionNote))}</p><h3>Confidential note</h3><p>${esc(answer(responses.disclosure))}</p><h3>Truthfulness declaration confirmed</h3><p>${esc(answer(responses.declaration))}</p>${Object.entries(responses).filter(([name])=>!known.has(name)).map(([name,value])=>`<h3>${esc(label(name))}</h3><p>${esc(answer(value))}</p>`).join('')}</div>`;
+ const responses=r.responses||{};
+ const pastorForm=r.questionSet?.startsWith('pastor-')||Object.keys(responses).some(name=>name.startsWith('pastor'));
+ const questions=pastorForm?(r.questionSet===PASTOR_QUESTION_SET?PASTOR_QUESTIONS:PASTOR_QUESTIONS_V1):(r.questionSet===BISHOP_QUESTION_SET?BISHOP_QUESTIONS:BISHOP_QUESTIONS_V1);
+ const answer=(value,options=[])=>{
+   if(value===undefined||value===null||value==='')return 'Not answered';
+   const option=options.find(o=>typeof o==='object'&&o.value===value);
+   return option?option.label:typeof value==='boolean'?(value?'Yes':'No'):String(value);
+ };
+ const known=new Set([...questions.flatMap(q=>[q.id,...(q.followUps||[]).map(f=>f.id)]),'declaration','disclosure','intentionNote']);
+ return `<ol class="response-list">${questions.map(q=>`<li><h3>${esc(typeof q.title==='function'?q.title(type==='pastor'?'pastor':'leader'):q.title)}</h3><p>${esc(answer(responses[q.id],q.options))}</p>${(q.followUps||[]).filter(f=>!f.when||responses[q.id]===f.when||responses[f.id]).map(f=>`<div class="response-follow-up"><h4>${esc(f.label)}</h4><p>${esc(answer(responses[f.id],f.options))}</p></div>`).join('')}</li>`).join('')}</ol><div class="response-notes"><h3>Additional information about continuing or resigning</h3><p>${esc(answer(responses.intentionNote))}</p><h3>Confidential note</h3><p>${esc(answer(responses.disclosure))}</p><h3>Truthfulness declaration confirmed</h3><p>${esc(answer(responses.declaration))}</p>${Object.entries(responses).filter(([name])=>!known.has(name)).map(([name,value])=>`<h3>${esc(label(name))}</h3><p>${esc(answer(value))}</p>`).join('')}</div>`;
 }
 function drawer(code,submissionPeople=null){
   const people=submissionPeople||sorted(data().filter(matches)).map(person=>({...person,type:adminType}));

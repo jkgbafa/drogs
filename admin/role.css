@@ -125,3 +125,24 @@ html[data-capture-protection="active"] img{-webkit-user-drag:none;pointer-events
 .proof-dialog{width:min(1000px,94vw);height:90vh;padding:52px 20px 20px;border:0;border-radius:18px;background:#fff}.proof-dialog::backdrop{background:#071b22d9}.proof-dialog img{width:100%;height:100%;object-fit:contain}.proof-dialog button{position:absolute;right:12px;top:10px;width:34px;height:34px;border:0;border-radius:50%;background:#10262c;color:#fff;font-size:23px}
 .fact-grid b{overflow-wrap:anywhere}
 @media(max-width:720px){.record-sections{padding:16px 22px;gap:7px}.record-sections button{padding:10px;font-size:12px}.record-content>section,.record-content>aside{min-width:0}}
+
+.response-follow-up{border-left:3px solid #b8ddda;padding-left:18px;margin:18px 0}.response-follow-up h4{font-size:14px;margin:0;color:var(--muted)}
+
+/* Consistent portrait frames; focal positions preserve faces without stretching. */
+.cards .portrait-card .card-image{height:auto;aspect-ratio:4/5}
+.cards .portrait-card .card-photo,.record-portrait .record-photo,.person-photo,.drawer-photo{object-fit:cover;object-position:var(--portrait-x,50%) var(--portrait-y,25%)}
+.record-portrait{height:auto;aspect-ratio:4/5;align-self:start}
+.denomination-heading{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:28px}
+.denomination-identity{display:flex;align-items:center;gap:24px;min-width:0}
+.denomination-heading h2{overflow-wrap:anywhere}
+.denomination-heading p{margin-bottom:0}
+.denomination-totals{display:grid;grid-template-columns:repeat(2,minmax(140px,1fr));gap:12px}
+.denomination-totals button{text-align:left;min-width:148px;padding:20px;border-radius:14px;transition:background .15s,border-color .15s}
+.denomination-totals button:hover{background:#f5fffd;border-color:#078688}
+.denomination-totals button:focus-visible{outline:3px solid #078688;outline-offset:3px}
+.denomination-totals span{font-size:16px;font-weight:650;color:#43565d}
+.denomination-totals strong{display:block;font-size:clamp(44px,4vw,60px);line-height:1.05;font-weight:800;letter-spacing:-2px;margin:15px 0 10px;font-variant-numeric:tabular-nums;color:#172436}
+.denomination-totals small{display:flex;justify-content:space-between;gap:20px;font-size:12px;color:#087f82}
+.denomination-totals i{font-style:normal}
+@media(max-width:1000px){.denomination-heading{grid-template-columns:1fr}.denomination-totals{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:540px){.denomination-identity{gap:16px}.denomination-totals button{min-width:0;padding:16px}.denomination-totals strong{font-size:44px}.record-portrait{width:100%;max-width:420px;justify-self:center}}

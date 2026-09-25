@@ -11,7 +11,7 @@
     "dev": "next dev",
     "prebuild": "node scripts/prepare-public.mjs",
     "build": "next build",
-    "test": "node --test tests/api.test.mjs tests/role_reconciliation.test.mjs"
+    "test": "node --test tests/api.test.mjs tests/role_reconciliation.test.mjs tests/question_versions.test.mjs tests/photo_url.test.mjs tests/portrait_framing.test.mjs"
   },
   "devDependencies": {
     "playwright": "^1.62.1"

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
 import test from 'node:test';
+import {findRecord,recordKeys} from '../src/runtime/person-records.js';
 const context={window:{}};
 for(const role of ['bishops','pastors'])vm.runInNewContext(readFileSync(new URL(`../data/${role}.js`,import.meta.url),'utf8'),context);
 const {BISHOPS:b,PASTORS:p}=context.window;
@@ -28,4 +29,29 @@ test('female bishop titles follow their recorded organization',()=>{
   for(const person of b.filter(person=>person.gender==='FEMALE')){
     assert.equal(person.title,person.organization==='UO-FLC190'?'Mother':'Episcopal Sister',person.name);
   }
+});
+
+test('confirmed merges retain old codes and keep the two Franks separate',()=>{
+  const paa=b.find(x=>x.code===148),kofi=p.find(x=>x.code===2622),raquel=p.find(x=>x.code===5019);
+  assert(recordKeys(paa,'bishop').includes('bishop:150'));
+  assert(recordKeys(kofi,'pastor').includes('pastor:4993'));
+  assert(recordKeys(raquel,'pastor').includes('pastor:3341'));
+  assert(!b.some(x=>x.code===150));
+  assert(!p.some(x=>[4993,3341].includes(x.code)));
+  assert.equal(kofi.organization,'UO-FLC190');
+  const frankB=b.find(x=>x.code===69),frankP=p.find(x=>x.code===1662);
+  assert.equal(frankP.name,'Frank Asirifi Otchere');
+  assert(frankB.image&&frankP.image);
+  assert.notEqual(frankB.image,frankP.image);
+  assert(!readFileSync(new URL('../'+frankB.image,import.meta.url)).equals(readFileSync(new URL('../'+frankP.image,import.meta.url))));
+});
+
+test('merged records retain previous submissions without changing stored originals',()=>{
+  const person=b.find(x=>x.code===148);
+  const records={'bishop:148':{responses:{doctrine:'Yes'},updatedAt:'2026-09-25T10:00:00Z'},'bishop:150':{responses:{doctrine:'No'},updatedAt:'2026-09-24T10:00:00Z'}};
+  const original=JSON.stringify(records),result=findRecord(records,person,'bishop');
+  assert.equal(result.responses.doctrine,'Yes');
+  assert.equal(result.previousDeclarations[0].responses.doctrine,'No');
+  assert.equal(JSON.stringify(records),original);
+  assert.equal(findRecord({'bishop:150':records['bishop:150']},person,'bishop').responses.doctrine,'No');
 });

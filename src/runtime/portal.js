@@ -1,8 +1,11 @@
+import { findRecord } from './person-records';
+import { portraitUrl } from './photo-url';
+import { portraitStyle } from './portrait-framing';
 import { createDrogsSession } from './session';
 import { createEventScope } from './events';
 
 export function mountPortal(host,directory) {
-const {BISHOPS,PASTORS,BISHOP_QUESTIONS,PASTOR_QUESTIONS,PASTOR_QUESTION_SET,FLOW_BANK_ACCOUNTS}=directory;
+const {BISHOPS,PASTORS,BISHOP_QUESTIONS,BISHOP_QUESTION_SET,BISHOP_QUESTIONS_V1,PASTOR_QUESTIONS,PASTOR_QUESTION_SET,PASTOR_QUESTIONS_V1,FLOW_BANK_ACCOUNTS}=directory;
 const events=createEventScope();
 const app=host;
 const STORE='drogs-2027';
@@ -16,9 +19,9 @@ const wishesToResign=r=>r.status==='submitted'&&r.responses?.intention==='I wish
 const roster=()=>currentType==='bishop'?BISHOPS:PASTORS;
 function selectRecord(type,code){
   currentType=type;
-  current=roster().find(person=>person.code===code||(type==='bishop'&&(person.previousBishopCodes||[]).includes(code)));
+  current=roster().find(person=>person.code===code||(type==='bishop'?(person.previousBishopCodes||[]).includes(code):(person.previousPastorCodes||[]).includes(code)));
   if(!current&&type==='pastor'){
-    current=BISHOPS.find(person=>person.previousPastorCode===code);
+    current=BISHOPS.find(person=>person.previousPastorCode===code||(person.previousPastorCodes||[]).includes(code));
     if(current)currentType='bishop';
   }
   if(!current&&type==='bishop'){
@@ -30,7 +33,7 @@ const role=()=>currentType==='bishop'?'Leader':'Pastor';
 const cycle=()=>currentType==='bishop'?'leadership':'pastoral';
 const key=b=>`${currentType}:${b.code}`;
 const initials=name=>name.split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0]).join('').toUpperCase();
-const portrait=(person,className='',alt='')=>{const media=person.image?`<img class="${className}" src="${person.image}" alt="${esc(alt||person.name)}" loading="lazy" decoding="async">`:`<span class="avatar ${className}" aria-label="${esc(alt||person.name)}">${initials(person.name)}</span>`;return media};
+const portrait=(person,className='',alt='')=>{const media=person.image?`<img class="${className}" style="${portraitStyle(person.image)}" src="${esc(portraitUrl(person.image))}" alt="${esc(alt||person.name)}" loading="lazy" decoding="async">`:`<span class="avatar ${className}" aria-label="${esc(alt||person.name)}">${initials(person.name)}</span>`;return media};
 const displayName=person=>person.name;
 const affiliation=person=>`${person.designation||person.organization}${person.denomination?` — ${person.denomination}`:''}`;
 const denominationLogo=(person,className='denomination-logo')=>person.denominationLogo?`<img class="${className}" src="${person.denominationLogo}" alt="${esc(person.denomination||person.organization)} logo" loading="lazy" decoding="async">`:'';
@@ -46,7 +49,7 @@ const paymentAppLinks=()=>paymentApps.map(([name,url,domain])=>`<a class="paymen
 function loadRecords(){try{return JSON.parse(localStorage.getItem(STORE)||'{}')}catch{return {}}}
 function saveRecords(records){localStorage.setItem(STORE,JSON.stringify(records));window.dispatchEvent(new Event('storage'))}
 function seeded(){return{status:'not_started',paid:false,review:'Awaiting submission',updatedAt:null,responses:{},paymentMethod:null}}
-function record(b){const saved=loadRecords();return saved[key(b)]||(b.previousPastorCode?saved[`pastor:${b.previousPastorCode}`]:null)||(b.previousBishopCodes||[]).map(code=>saved[`bishop:${code}`]).find(Boolean)||seeded(b)}
+function record(b){return findRecord(loadRecords(),b,currentType,seeded())}
 function put(b,patch){const all=loadRecords();all[key(b)]={...record(b),...patch,role:currentType};saveRecords(all)}
 
 function route(){clearTimeout(confirmationTimer);if(!session.active())return gate();const hash=location.hash.slice(1);const saved=history.state?.drogsRecord;if(saved&&['profile','declaration','payment','receipt','confirmation','response'].includes(hash)){selectRecord(saved.type,saved.code)}if(current&&['profile','declaration','payment','receipt','confirmation','response'].includes(hash))history.replaceState({drogsRecord:{type:currentType,code:current.code}},'');if(current&&wishesToResign(record(current))&&['payment','receipt','confirmation','response'].includes(hash))return responseThanks();if(hash==='declaration'&&current)return declaration();if(hash==='payment'&&current)return payment();if(['receipt','confirmation'].includes(hash)&&current)return confirmation();if(hash==='profile'&&current)return profile();home()}
@@ -78,16 +81,35 @@ function profile(){
   document.querySelector('#change').onclick=()=>session.signOut();
   document.querySelector('#continue').onclick=()=>{location.hash=r.status==='submitted'?(wishesToResign(r)?'response':r.paid?'confirmation':'payment'):'declaration'};
 }
+function choiceMarkup(id,options,value){
+  return `<div class="options">${options.map(option=>{const item=typeof option==='string'?{value:option,label:option}:option;return `<label><input type="radio" name="${id}" value="${esc(item.value)}" ${value===item.value?'checked':''}> ${esc(item.label)}</label>`}).join('')}</div>`;
+}
+function followUpHtml(q,field,responses){
+  const visible=!field.when||responses[q.id]===field.when,value=responses[field.id]||'';
+  const content=field.type==='choice'?`<div class="follow-up-label">${esc(field.label)}</div>${choiceMarkup(field.id,field.options,value)}`:`<label for="${field.id}">${esc(field.label)}</label>${field.type==='text'?`<textarea class="field" id="${field.id}" name="${field.id}">${esc(value)}</textarea>`:`<input class="field" id="${field.id}" name="${field.id}" value="${esc(value)}">`}`;
+  return `<fieldset class="question-follow-up" data-parent="${q.id}" ${field.when?`data-when="${esc(field.when)}"`:''} ${visible?'':'hidden disabled'}>${content}</fieldset>`;
+}
 function qHtml(q,i,value,responses={}){
   const title=typeof q.title==='function'?q.title(role().toLowerCase()):q.title;
-  if(q.type==='text')return `<div class="question"><span class="qno">${String(i+1).padStart(2,'0')}</span><h3><label for="${q.id}">${title}</label></h3><p>${q.help}</p><textarea class="field" id="${q.id}" name="${q.id}" placeholder="Write your response here">${esc(value||'')}</textarea></div>`;
-  if(q.type==='scale')return`<div class="question"><span class="qno">${String(i+1).padStart(2,'0')}</span><h3>${title}</h3><p>${q.help}</p><div class="scale">${[1,2,3,4,5,6,7,8,9,10].map(n=>`<label>${n}<input type="radio" name="${q.id}" value="${n}" ${String(value)===String(n)?'checked':''}></label>`).join('')}</div></div>`;
-  return`<div class="question"><span class="qno">${String(i+1).padStart(2,'0')}</span><h3>${title}</h3><p>${q.help}</p><div class="options">${q.options.map(o=>`<label><input type="radio" name="${q.id}" value="${esc(o)}" ${value===o?'checked':''}> ${esc(o)}</label>`).join('')}</div>${q.id==='intention'?`<textarea class="field" name="intentionNote" placeholder="If you wish to resign or discuss your position, tell the D.R.O.G.S Office what you would like them to know.">${esc(responses.intentionNote||'')}</textarea>`:''}</div>`
+  const heading=`<span class="qno">${String(i+1).padStart(2,'0')}</span><h3>${esc(title)}</h3>${q.help?`<p>${esc(q.help)}</p>`:''}`;
+  let input;
+  if(q.type==='text')input=`<textarea class="field" id="${q.id}" name="${q.id}" aria-label="${esc(title)}" placeholder="Write your response here">${esc(value||'')}</textarea>`;
+  else if(q.type==='number')input=`<input class="field count-field" type="number" min="0" step="1" inputmode="numeric" id="${q.id}" name="${q.id}" aria-label="${esc(title)}" value="${esc(value??'')}">`;
+  else if(q.type==='scale')input=`<div class="scale">${[1,2,3,4,5,6,7,8,9,10].map(n=>`<label>${n}<input type="radio" name="${q.id}" value="${n}" ${String(value)===String(n)?'checked':''}></label>`).join('')}</div>`;
+  else input=choiceMarkup(q.id,q.options,value);
+  return `<div class="question">${heading}${input}${(q.followUps||[]).map(field=>followUpHtml(q,field,responses)).join('')}${q.id==='intention'?`<textarea class="field" name="intentionNote" aria-label="Additional information about continuing or resigning" placeholder="If you wish to resign or discuss your position, tell the D.R.O.G.S Office what you would like them to know.">${esc(responses.intentionNote||'')}</textarea>`:''}</div>`;
+}
+function updateFollowUps(form){
+  form.querySelectorAll('[data-parent]').forEach(field=>{
+    const selected=form.querySelector(`input[name="${field.dataset.parent}"]:checked`)?.value;
+    const visible=!field.dataset.when||selected===field.dataset.when;
+    field.hidden=!visible;field.disabled=!visible;
+  });
 }
 function saveDeclaration(patch){
-  const previous=record(current),questionSet=currentType==='pastor'?PASTOR_QUESTION_SET:'governance-2027-v1';
+  const previous=record(current),questionSet=currentType==='pastor'?PASTOR_QUESTION_SET:BISHOP_QUESTION_SET;
   const previousDeclarations=[...(previous.previousDeclarations||[])];
-  if(currentType==='pastor'&&previous.questionSet!==questionSet&&Object.keys(previous.responses||{}).length){
+  if(previous.questionSet!==questionSet&&Object.keys(previous.responses||{}).length){
     previousDeclarations.push({questionSet:previous.questionSet||'governance-2027-v1',responses:previous.responses,submittedAt:previous.submittedAt||null,status:previous.status});
   }
   put(current,{...patch,questionSet,previousDeclarations});
@@ -97,7 +119,7 @@ function declaration(){
   const r=record(current),questions=currentType==='pastor'?PASTOR_QUESTIONS:baseQuestions,answered=questions.filter(q=>r.responses?.[q.id]).length;
   app.innerHTML=`<div class="wrap"><div class="topline"><div><div class="eyebrow">Annual declaration</div><h1>Your annual declaration</h1><p>Answer the questions that apply. You can save the form and return before submitting.</p></div><button class="ghost" id="back">Back to profile</button></div><div class="form-shell"><aside class="form-aside"><div class="mini-person">${portrait(current,'mini-avatar')}<div><strong>${esc(displayName(current))}</strong><small>${displayCode(current)}</small></div></div><div class="progress"><i style="width:${answered/10*100}%"></i></div><div class="progress-copy">${answered} of 10 questions answered</div></aside><form class="content-card" id="declaration-form">${questions.slice(0,-1).map((q,i)=>qHtml(q,i,r.responses?.[q.id],r.responses)).join('')}<div class="question"><span class="qno">CONFIDENTIAL DISCLOSURE</span><h3>Optional confidential note</h3><p>Use this space to request support, clarify an answer, or disclose a matter for private review.</p><textarea class="field" name="disclosure" placeholder="Write your confidential note here">${esc(r.responses?.disclosure||'')}</textarea></div>${qHtml(questions.at(-1),9,r.responses?.intention,r.responses)}<div class="question"><label class="options"><span><input type="checkbox" name="declaration" ${r.responses?.declaration?'checked':''}> I confirm that these answers are complete and truthful to the best of my knowledge.</span></label></div><div class="form-actions"><p>You can continue with unanswered questions for now. Submitting sends this declaration to the D.R.O.G.S Office.</p><button class="primary" id="submit-declaration">${r.responses?.intention==='I wish to resign'?'Submit response':'Continue to payment'} <span>→</span></button></div></form></div></div>`;
   document.querySelector('#back').onclick=()=>location.hash='profile';
-  document.querySelector('#declaration-form').onchange=event=>{const fd=new FormData(event.currentTarget),responses=Object.fromEntries(fd.entries());responses.declaration=fd.has('declaration');document.querySelector('#submit-declaration').innerHTML=`${responses.intention==='I wish to resign'?'Submit response':'Continue to payment'} <span>→</span>`;saveDeclaration({status:'draft',responses,updatedAt:new Date().toISOString()})};
+  document.querySelector('#declaration-form').onchange=event=>{updateFollowUps(event.currentTarget);const fd=new FormData(event.currentTarget),responses=Object.fromEntries(fd.entries());responses.declaration=fd.has('declaration');document.querySelector('#submit-declaration').innerHTML=`${responses.intention==='I wish to resign'?'Submit response':'Continue to payment'} <span>→</span>`;saveDeclaration({status:'draft',responses,updatedAt:new Date().toISOString()})};
   document.querySelector('#declaration-form').onsubmit=event=>{event.preventDefault();const fd=new FormData(event.currentTarget),responses=Object.fromEntries(fd.entries());responses.declaration=fd.has('declaration');saveDeclaration({status:'submitted',responses,submittedAt:new Date().toISOString(),updatedAt:new Date().toISOString(),review:responses.intention==='I wish to resign'?'Resignation requested':'Ready for review'});if(responses.intention==='I wish to resign')submissionLoading('response');else location.hash='payment'};
 }
 
