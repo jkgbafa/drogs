@@ -4,14 +4,14 @@
   "type": "module",
   "scripts": {
     "serve": "node scripts/serve-export.mjs",
-    "test:browser": "node tests/browser_qa.mjs",
+    "test:browser": "node tests/application_review_browser.mjs",
     "test:api": "node --test tests/api.test.mjs",
     "api:key": "node scripts/create_api_key.mjs",
     "predev": "node scripts/prepare-public.mjs",
     "dev": "next dev",
     "prebuild": "node scripts/prepare-public.mjs",
     "build": "next build",
-    "test": "node --test tests/api.test.mjs tests/role_reconciliation.test.mjs tests/question_versions.test.mjs tests/photo_url.test.mjs tests/portrait_framing.test.mjs tests/progress_status.test.mjs tests/bulk_review.test.mjs"
+    "test": "node --test tests/api.test.mjs tests/role_reconciliation.test.mjs tests/question_versions.test.mjs tests/photo_url.test.mjs tests/portrait_framing.test.mjs tests/progress_status.test.mjs tests/bulk_review.test.mjs tests/application_review.test.mjs"
   },
   "devDependencies": {
     "playwright": "^1.62.1"

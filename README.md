@@ -19,17 +19,17 @@ The preview runs at `http://localhost:4198/drogs/`. A development build without 
 
 ## Participant flow
 
-Participants enter the portal password and their assigned B/P code, which selects their record and questionnaire automatically. Questions are optional. A resignation request skips payment and goes to confirmation. Other submissions can include payment proof using the Ghana MoMo or bank details. Confirmation thanks the participant and says their response is under review. Sessions sign out after 30 minutes of inactivity.
+Participants enter the portal password and their assigned B/P code. They can save a draft, review all answers, return to edit, and confirm a truthfulness declaration before submitting. All visible choice questions, counts and main written answers are required; explanatory notes are optional. Resignations skip payment.
+
+Complete applications with clear responses are automatically approved and proceed to payment. Explicit concerns, doctrine or vision reservations, health impact, personal conduct disclosures, faith/prayer struggles, requests for discussion and any confidential notes require individual review. Three or more middle answers on routine participation/commitment questions also require review. A health disclosure routes to support review; it does not automatically decline an application. Missing or unknown answers never qualify for automatic approval. The rules, flagged question/answer snapshots, decision method and timestamps are recorded with the submission. Older submissions are not retrospectively auto-approved under new rules.
 
 ## Administration
 
-Directory, Submissions and Resignations have separate views. Directory supports organization, denomination, group and status filters, tile/table views, and full-screen profiles. Submission profiles show the person's name and photo, declaration responses, submission time, payment proof and review controls. Detailed personal and ministry information remains in Directory.
+Directory contains profiles. Submissions defaults to applications needing individual review, showing the person's photo, name, denomination and flagged answers, without the full personal-information grid. Automatically approved applications are excluded. Reviewed flagged cases remain available through the Reviewed applications filter. Legacy forms without a flag snapshot have an expandable original-response view so an administrator can assess them.
 
-For bulk approval, open Submissions, filter by role, organization and denomination, then select individual checkboxes or all ready submissions in the results. Review the exact count and names before confirming. Bulk approval requires a submitted form and recorded payment; resignations, already approved records and cases requiring individual review are excluded. Changing filters clears the selection. Each batch rechecks the selected records and saves once, preserving responses, receipts and review notes, with a timestamp and batch ID in review history. These decisions use the same browser-local storage described below.
+Administrators use direct buttons to approve and unlock payment, request discussion, hold, decline or save a note. Decisions retain an audit history and can include a message displayed in the applicant's portal. No email or WhatsApp notification is sent. The dashboard places resignation and review counts side by side. Approval updates synchronize between tabs in the same browser; cross-device delivery requires the backend described below.
 
-Female members of the bishop category are titled Mother for UO-FLC190 and Episcopal Sister for UD-OLGC. The category remains available for filtering, separate from the person's title.
-
-The current reconciled directory contains 242 bishop-category records and 5,067 pastor records. These are imported roster counts, not a claim that every classification has been independently verified. Photo folders never establish a person's role. The audit in `data/directory-audit.json` tracks source reconciliation. At this update, 237 bishop records and 3,194 pastor records have linked portraits; unresolved matches are retained for review instead of guessed.
+Female members of the bishop category are titled Mother for First Love and Outreach, and Episcopal Sister for UD. The bishop category contains 258 records (UD 178, First Love 68, Outreach 12); there are 5,070 pastors (UD 4,379, First Love 685, Outreach 6), for 5,328 people overall. The FLOW Office has only three bishop-category members: Nely Nina Masuku, Leonard Hyde and Brian Masuku. Its six other members are Outreach pastors; prior codes and submissions are preserved through aliases. These are reconciled roster counts, not independent confirmation of every classification.
 
 ## Storage and security
 
@@ -47,7 +47,7 @@ npm test
 DROGS_BASE_URL=http://localhost:4198/drogs npm run test:browser
 ```
 
-Browser checks cover login, forms, resignation routing, payment proof, confirmation, admin filters, submission responses and receipt previews, profile navigation, idle sign-out and mobile layout.
+Current browser checks cover saving, previewing and editing answers, truthfulness confirmation, automatic approval for both roles, flagged health responses, payment locking and manual unlocking, queue filtering, resignation routing, moved-role aliases and mobile layout.
 
 ## R2 portrait storage
 

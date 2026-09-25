@@ -1,0 +1,14 @@
+import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';import vm from 'node:vm';
+import {assessApplication,validateApplication,visibleFields,needsApplicationReview} from '../src/runtime/application-review.js';
+import {bulkApprovalBlock} from '../src/runtime/bulk-review.js';
+import {paymentUnlocked} from '../src/runtime/payment-eligibility.js';
+const c={window:{}};for(const n of ['bishop','pastor'])vm.runInNewContext(fs.readFileSync(new URL(`../data/${n}-questions.js`,import.meta.url),'utf8'),c);
+const clean=qs=>{const r={declaration:true};for(const q of qs){r[q.id]=q.review?.clear[0]||(q.type==='number'?'0':q.type==='text'?'Growing our congregations.':'Yes');for(const f of q.followUps||[])if(!f.when||f.when===r[q.id])r[f.id]=f.review?.clear[0]||(f.type==='choice'?f.options[0]:'')}return r};
+for(const qs of [c.window.BISHOP_QUESTIONS,c.window.PASTOR_QUESTIONS]){
+ test('complete clear '+qs[0].id+' application approves and unlocks payment',()=>{const r=clean(qs);assert.equal(validateApplication(qs,r,{attestation:true}).length,0);const a=assessApplication(qs,r);assert.equal(a.review,'Approved');assert(paymentUnlocked({status:'submitted',review:a.review,responses:r}));});
+ test('each concerning option is individually flagged; no health or conduct bypass',()=>{for(const f of visibleFields(qs,clean(qs)).filter(f=>f.review))for(const value of f.review.flag||[]){const r={...clean(qs),[f.id]:value},a=assessApplication(qs,r);assert.notEqual(a.review,'Approved',f.id+': '+value);assert(a.flags.some(flag=>flag.id===f.id));}});
+ test('notes, missing answers and missing attestation cannot auto-approve',()=>{for(const patch of [{disclosure:'Please call me'},{intentionNote:'I would like a discussion'},{declaration:false},{[qs[0].id]:''}])assert.notEqual(assessApplication(qs,{...clean(qs),...patch}).review,'Approved');});
+}
+test('three middle answers flag, one or two routine middle answers do not',()=>{const qs=c.window.PASTOR_QUESTIONS,r=clean(qs);for(const [i,id]of ['pastorActiveMinistry','pastorMinistryConnection','pastorAnnualCommitment'].entries()){r[id]='Partly / sometimes';assert.equal(assessApplication(qs,r).review,i<2?'Approved':'In review')}});
+test('flagged forms cannot be bulk approved and approval removes them from active queue',()=>{const r={status:'submitted',review:'In review',responses:{intention:'I wish to continue'},reviewAssessment:{flags:[{id:'healthImpact'}]}};assert(bulkApprovalBlock(r));assert(needsApplicationReview(r));assert(!needsApplicationReview({...r,review:'Approved'}));assert(!needsApplicationReview({...r,responses:{intention:'I wish to resign'}}))});
+test('zero numeric answers accepted, negative/fraction/blank rejected',()=>{const qs=c.window.BISHOP_QUESTIONS;for(const v of ['-1','1.5',''])assert(validateApplication(qs,{...clean(qs),bishopPastorCount:v}).some(e=>e.id==='bishopPastorCount'))});

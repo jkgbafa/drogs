@@ -11,10 +11,10 @@ test('new question sets contain ten questions, unique response fields, and conti
   const ids=questions.flatMap(question=>[question.id,...(question.followUps||[]).map(f=>f.id)]);
   assert.equal(new Set(ids).size,ids.length);
  }
- assert.equal(q.PASTOR_QUESTIONS.at(-1).options[1].value,'I wish to resign');
+ assert.equal(q.PASTOR_QUESTIONS.at(-1).options.at(-1).value,'I wish to resign');
 });
 test('legacy question wording and separate version identifiers remain available',()=>{
- assert.equal(q.BISHOP_QUESTION_SET,'governance-2027-v3');assert.equal(q.PASTOR_QUESTION_SET,'pastor-2027-v2');
+ assert.equal(q.BISHOP_QUESTION_SET,'governance-2027-v4');assert.equal(q.PASTOR_QUESTION_SET,'pastor-2027-v3');
  assert(q.BISHOP_QUESTIONS_V1.some(x=>x.id==='standing'));
  assert(!q.BISHOP_QUESTIONS.some(x=>x.id==='standing'));
  assert(q.PASTOR_QUESTIONS_V1.some(x=>x.id==='pastorCalling'));
@@ -22,7 +22,7 @@ test('legacy question wording and separate version identifiers remain available'
 });
 
 test('bishop questions 4, 6 and 8 stay intact and operational questions cover all seven requested topics',()=>{
- for(const index of [3,5,7])assert.deepEqual(q.BISHOP_QUESTIONS[index],q.BISHOP_QUESTIONS_V2[index]);
+ for(const index of [3,5,7])assert.equal(q.BISHOP_QUESTIONS[index].title,q.BISHOP_QUESTIONS_V2[index].title);
  for(const id of ['bishopPastorCount','bishopChurchCount','bishopPastorsContacted','bishopLeadershipMeetings','bishopJurisdictionChallenges','bishopIntervention','bishopGrowthTarget'])assert(q.BISHOP_QUESTIONS.some(x=>x.id===id));
  assert(q.BISHOP_QUESTIONS_V2.some(x=>x.id==='doctrine'));
 });

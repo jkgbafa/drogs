@@ -2,6 +2,7 @@ import { findRecord } from './person-records.js';
 
 export const submissionKey = person => `${person.type}:${person.code}`;
 export function bulkApprovalBlock(record = {}) {
+ if (record.reviewAssessment?.flags?.length) return 'Flagged answers need individual review';
  if (record.status !== 'submitted') return 'Form not submitted';
  if (record.responses?.intention === 'I wish to resign') return 'Resignation request';
  if (record.review === 'Approved') return 'Already approved';

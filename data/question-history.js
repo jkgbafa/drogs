@@ -43,3 +43,30 @@ window.BISHOP_QUESTIONS_V2=[
  {id:'commitment',title:'Will you uphold the obligations of this office, including confidentiality, accountability and responsible leadership?',help:'Your annual declaration confirms the information supplied in this submission.',type:'choice',options:['Yes, I recommit','I need to discuss this before recommitting']},
  {id:'intention',title:'Do you wish to continue serving as a leader for the coming year?',help:'If you intend to resign, select that option. D.R.O.G.S will contact you privately.',type:'choice',options:['I wish to continue','I wish to resign','I need to discuss my position']}
 ];
+
+window.BISHOP_QUESTIONS_V3=[
+ {id:'bishopPastorCount',title:'How many pastors are currently under your oversight?',type:'number',help:'Enter the current number of pastors.'},
+ {id:'bishopChurchCount',title:'How many churches are under your jurisdiction?',type:'number',help:'Enter the current number of churches.'},
+ {id:'bishopPastorsContacted',title:'How many pastors did you personally communicate with or visit during the past year?',type:'number',help:'Count each pastor once, even if you contacted or visited them several times.'},
+ {id:'training',title:'Have you intentionally trained and developed leaders or successors during this annual cycle?',help:'Ministry includes producing and strengthening other leaders.',type:'choice',options:['Yes, consistently','Somewhat','Not during this period']},
+ {id:'bishopIntervention',title:'Which churches or pastors presently require intervention or assistance?',type:'text',help:'Name the churches or pastors and describe the support needed. You may request a private conversation for sensitive details.'},
+ {id:'bishopJurisdictionChallenges',title:'What are the three greatest challenges within your jurisdiction?',type:'text',help:'Describe the challenges and where support would be most useful.'},
+ {id:'bishopLeadershipMeetings',title:'Did you hold leadership meetings with your pastors?',type:'choice',options:['Yes','No'],followUps:[{id:'bishopLeadershipMeetingsDetails',label:'How often did you meet, and what were the main outcomes?',type:'text',when:'Yes'}]},
+ {id:'integrity',title:'Is there any matter of conduct, marriage, finance, authority or personal integrity that requires confidential review?',help:'You may request a private conversation without writing the details here.',type:'choice',options:['No matter to disclose','Yes — I request a confidential review']},
+ {id:'bishopGrowthTarget',title:'What is your growth target for the coming year?',type:'text',help:'Describe your targets and the practical steps you plan to take.'},
+ {id:'intention',title:'Do you wish to continue serving as a leader for the coming year?',help:'If you intend to resign, select that option. DROGS will contact you privately.',type:'choice',options:['I wish to continue','I wish to resign','I need to discuss my position']}
+];
+
+
+window.PASTOR_QUESTIONS_V2=[
+ {id:'pastorReaffirmation',title:'Do you reaffirm your commitment to Jesus Christ and your calling to Christian ministry?',type:'choice',options:['Yes','No']},
+ {id:'pastorBeliefs',title:'Do you continue to agree with and uphold the doctrine, beliefs and values of our ministry?',type:'choice',options:['Yes','No'],followUps:[{id:'pastorBeliefsExplanation',label:'Please explain.',type:'text',when:'No'}]},
+ {id:'pastorGoodStanding',title:'Are you currently living in good standing as a Christian minister and endeavoring to maintain biblical standards of holiness and integrity?',type:'choice',options:['Yes','No'],followUps:[{id:'pastorConfidentialAssistance',label:'Would you like confidential pastoral assistance?',type:'choice',options:['Yes','No'],when:'No'}]},
+ {id:'pastorActiveMinistry',title:'Are you currently actively involved in ministry?',type:'choice',options:['Yes','No','None'],followUps:[{id:'pastorMinistryChurch',label:'Ministry / church',type:'input',when:'Yes'},{id:'pastorMinistryPosition',label:'Position',type:'input',when:'Yes'},{id:'pastorMinistryLocation',label:'Country / city',type:'input',when:'Yes'}]},
+ {id:'pastorMinistryConnection',title:'During the past year, have you remained actively connected to the ministry and participated in its major meetings, conferences, training or activities where reasonably possible?',type:'choice',options:['Yes','No']},
+ {id:'pastorMinisterialDevelopment',title:'Have you continued developing yourself through ministry training, conferences, books, courses or other forms of ministerial enrichment during the past year?',type:'choice',options:['Yes','No']},
+ {id:'pastorVisionSupport',title:'Do you commit yourself to supporting the vision and work of the ministry during the coming year?',type:'choice',options:['Yes','No']},
+ {id:'pastorAnnualCommitment',title:'Do you commit to faithfully support the ministry through your Annual Ministerial Commitment?',type:'choice',options:['Yes','No'],followUps:[{id:'pastorPaymentPreference',label:'Preferred payment',type:'choice',options:['Annual','Monthly']}]},
+ {id:'pastorLeadershipDisclosure',title:'Is there anything concerning your ministry, personal circumstances or relationship with the organization that you believe leadership should know about?',type:'choice',options:['No','Yes'],followUps:[{id:'pastorLeadershipExplanation',label:'Please explain.',type:'text',when:'Yes'}]},
+ {id:'intention',title:'Do you wish to renew your standing as an active Pastor of this ministry for the coming year?',help:'If you select No, your response will go to the office for review and you will not be taken to payment.',type:'choice',options:[{value:'I wish to continue',label:'YES, I RENEW MY COMMITMENT'},{value:'I wish to resign',label:'No'}]}
+];
