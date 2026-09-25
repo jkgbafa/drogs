@@ -41,10 +41,10 @@ const paymentAppLinks=()=>paymentApps.map(([name,url,domain])=>`<a class="paymen
 function loadRecords(){try{return JSON.parse(localStorage.getItem(STORE)||'{}')}catch{return {}}}
 function saveRecords(records){localStorage.setItem(STORE,JSON.stringify(records));window.dispatchEvent(new Event('storage'))}
 function seeded(){return{status:'not_started',paid:false,review:'Awaiting submission',updatedAt:null,responses:{},paymentMethod:null}}
-function record(b){const saved=loadRecords();return saved[key(b)]||(b.previousPastorCode?saved[`pastor:${b.previousPastorCode}`]:null)||seeded(b)}
+function record(b){const saved=loadRecords();return saved[key(b)]||(b.previousPastorCode?saved[`pastor:${b.previousPastorCode}`]:null)||(b.previousBishopCodes||[]).map(code=>saved[`bishop:${code}`]).find(Boolean)||seeded(b)}
 function put(b,patch){const all=loadRecords();all[key(b)]={...record(b),...patch,role:currentType};saveRecords(all)}
 
-function route(){if(!session.active())return gate();const hash=location.hash.slice(1);const saved=history.state?.drogsRecord;if(saved&&['profile','declaration','payment','receipt','response'].includes(hash)){currentType=saved.type;current=roster().find(person=>person.code===saved.code)}if(current&&['profile','declaration','payment','receipt','response'].includes(hash))history.replaceState({drogsRecord:{type:currentType,code:current.code}},'');if(current&&wishesToResign(record(current))&&['payment','receipt','response'].includes(hash))return responseThanks();if(hash==='declaration'&&current)return declaration();if(hash==='payment'&&current)return payment();if(hash==='receipt'&&current)return receipt();if(hash==='profile'&&current)return profile();home()}
+function route(){if(!session.active())return gate();const hash=location.hash.slice(1);const saved=history.state?.drogsRecord;if(saved&&['profile','declaration','payment','receipt','response'].includes(hash)){currentType=saved.type;current=roster().find(person=>person.code===saved.code||(person.previousBishopCodes||[]).includes(saved.code))}if(current&&['profile','declaration','payment','receipt','response'].includes(hash))history.replaceState({drogsRecord:{type:currentType,code:current.code}},'');if(current&&wishesToResign(record(current))&&['payment','receipt','response'].includes(hash))return responseThanks();if(hash==='declaration'&&current)return declaration();if(hash==='payment'&&current)return payment();if(hash==='receipt'&&current)return receipt();if(hash==='profile'&&current)return profile();home()}
 function viewClass(name){document.body.classList.remove('gate-view','home-view','record-view');document.body.classList.add(name)}
 function gate(){
   viewClass('gate-view');current=null;
@@ -60,7 +60,7 @@ function home(){
     if(!/^[BP]\d+$/.test(raw)){document.querySelector('#access-error').textContent='Enter your assigned B or P code.';return}
     currentType=raw[0]==='B'?'bishop':'pastor';
     const code=Number(raw.slice(1));
-    current=roster().find(person=>person.code===code);
+    current=roster().find(person=>person.code===code||(person.previousBishopCodes||[]).includes(code));
     if(!current){document.querySelector('#access-error').textContent='We could not find that code.';return}
     history.pushState({drogsRecord:{type:currentType,code:current.code}},'','#profile');route();
   };

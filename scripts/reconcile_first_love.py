@@ -9,6 +9,19 @@ def read(role):return json.loads((ROOT/f'data/{role}.js').read_text().split('=',
 def norm(n):return re.sub('[^a-z]','',n.lower())
 bishops,pastors=read('bishops'),read('pastors')
 report={'merged':[],'promoted':[],'added':[],'needsReview':[]}
+for keep,remove,oldpastor,name in [(141,245,None,'James Quist-Therson'),(196,248,None,'Edwin Morgan Ogoe Jr'),(252,None,4697,'Joseph Odarkwei Mills')]:
+    target=next((p for p in bishops if p['code']==keep),None)
+    if not target:continue
+    prior=next((p for p in bishops if p['code']==remove),None) if remove else next((p for p in pastors if p['code']==oldpastor),None)
+    target['photoAliases']=list(set(target.get('photoAliases',[])+[target['name'],name]))
+    target['name']=name
+    if remove:target['previousBishopCodes']=list(set(target.get('previousBishopCodes',[])+[remove]))
+    if oldpastor:target['previousPastorCode']=oldpastor
+    if prior:
+        for k,v in prior.items():
+            if k not in ('code','name','title','amount') and not target.get(k):target[k]=v
+        (bishops if remove else pastors).remove(prior)
+    report['merged'].append({'bishopCode':keep,'previousBishopCode':remove,'previousPastorCode':oldpastor,'name':name,'source':'User confirmed aliases'})
 for code,oldcode,name in [(79,4884,'Henrietta Ariel Orleans-Lindsay'),(86,4707,'Jacob Etrue Godwyll')]:
     b=next(p for p in bishops if p['code']==code)
     old=next((p for p in pastors if p['code']==oldcode),None)
@@ -30,7 +43,8 @@ record_aliases={
  'Jennis Kwabena Opoku':('P',2233),'Patrick Incoom':('P',3428),
  'Paula Chela Mills Thompson':('P',3465),'Serena Ariana Ababio':('P',4026),
  'Ruth Jani Appiah-Denkyira':('P',3864),'Adara Hyde':('P',2181),
- 'Dayanara Hart':('P',846),'Enoch Lamptey':('P',1351),'Farrell Bruce':('P',1545)
+ 'Dayanara Hart':('P',846),'Enoch Lamptey':('P',1351),'Farrell Bruce':('P',1545),
+ 'Kobby Ogoe':('B',196),'Joseph Dick mills':('B',252)
 }
 ambiguous={'Aida Maya Asiedu','Enoch','Daniel Adjei'}
 source_people={}

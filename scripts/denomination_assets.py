@@ -7,6 +7,8 @@ import unicodedata
 
 UD_LOGOS = Path('/Users/joshuagbafa/Downloads/all UD logos/Transparent PNGs')
 FIRST_LOVE_LOGO = Path('/Users/joshuagbafa/Downloads/DENOMINATION LOGOS + BISHOPS/0 - First Love Church (red circle).png')
+SSD_LOGOS = Path('/Volumes/HJC SSD 5/DOCUMENTARIES/SUPERNOVA/Other (Unorganized)/ELEMENTS CREATION/Version 1/3 ASSETS/Para-Church Logos (from PARA-CHURCH)/All-Denominations/WEBP UD Logos')
+SSD_NUMBERED_LOGOS = Path('/Volumes/HJC SSD 5/DOCUMENTARIES/SUPERNOVA/Other (Unorganized)/ELEMENTS CREATION/Version 1/3 ASSETS/UD Logos (55)')
 
 
 def normalize(value):
@@ -50,6 +52,22 @@ def prepare_denomination_logos(root):
             shutil.copy2(source, destination / filename)
             index[normalize(title)] = f'assets/denominations/{filename}'
 
+    if SSD_LOGOS.exists():
+        for source in sorted(SSD_LOGOS.glob('*.webp')):
+            if source.name.startswith('.') or normalize(source.stem) in index:
+                continue
+            filename=f'{slug(source.stem)}.webp'
+            shutil.copy2(source,destination/filename)
+            index[normalize(source.stem)]=f'assets/denominations/{filename}'
+
+    if SSD_NUMBERED_LOGOS.exists():
+        for source in sorted(SSD_NUMBERED_LOGOS.glob('*.png')):
+            title=re.sub(r'^\d+\s*-\s*','',source.stem)
+            if source.name.startswith('.') or normalize(title) in index:continue
+            filename=f'{slug(title)}.png'
+            shutil.copy2(source,destination/filename)
+            index[normalize(title)]=f'assets/denominations/{filename}'
+
     if FIRST_LOVE_LOGO.exists():
         filename = 'first-love-church.png'
         shutil.copy2(FIRST_LOVE_LOGO, destination / filename)
@@ -61,6 +79,14 @@ def match_denomination_logo(denomination, index):
     target = normalize(denomination)
     aliases = {
         'QODESH CITY CHURCHES': 'QODESH FAMILY CHURCH',
+        'JESUS IS THE DOOR': 'Jesus is the Door Church',
+        'POIMANO INTERNACIONAL NICARAGUA': 'poimano Internacional',
+        'GOOD SHEPHERD CHURCH GUYANA': 'GOOD SHEPHERD CHURCH',
+        'LAIKOS INTERNATIONAL CHURCH': 'LAIKOS INTERNATIONAL',
+        'CATCH THE ANOINTING CENTRE': 'Catch the Anointing',
+        'GREATER LOVE CHURCH GHANA': 'Greater Love Church',
+        'LA BELLE EGLISE': 'LA BELLE EGLISE GABON',
+        'ESCHATOS': 'ESCHATOS CHURCH',
         'JESUS IS THE ROCK CHURCH': 'JESUS IS THE ROCK',
         'JESUS SAVIOUR OF THE WORLD CHURCH INTERNATIONAL': 'JESUS SAVIOUR OF THE WORLD',
         'EVERYTHING BY PRAYER CENTER': 'EVERYTHING BY PRAYER CHURCH',
