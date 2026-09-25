@@ -16,7 +16,7 @@ def client():
 def roster(role):return json.loads((ROOT/f'data/{role}.js').read_text().split('=',1)[1].strip().rstrip(';'))
 def upload(s3,bucket,role,person):
  relative=person['image'];path=(ROOT/relative).resolve()
- if not any(path.is_relative_to((ROOT/'assets'/folder).resolve()) for folder in ('bishops','pastors')):raise ValueError('Portrait outside approved directory')
+ if not any(path.is_relative_to((ROOT/'assets'/folder).resolve()) for folder in ('bishops','pastors','outreach')):raise ValueError('Portrait outside approved directory')
  data=path.read_bytes();sha=hashlib.sha256(data).hexdigest()
  key=f'portraits/{sha[:2]}/{sha}{path.suffix.lower()}'
  try:head=s3.head_object(Bucket=bucket,Key=key)

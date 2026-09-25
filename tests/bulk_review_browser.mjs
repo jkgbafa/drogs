@@ -50,6 +50,19 @@ try{
  const result=await page.evaluate(()=>JSON.parse(localStorage.getItem('drogs-2027')));
  for(const person of selected.slice(0,2)){const key=`pastor:${person.code}`;assert.equal(result[key].review,'Approved');assert.equal(result[key].reviewNote,'Keep this');assert.equal(result[key].reviewHistory.length,1)}
  for(const key of Object.keys(saved).filter(k=>!selected.slice(0,2).some(p=>k===`pastor:${p.code}`)))assert.deepEqual(result[key],saved[key]);
+
+ // Select a denomination, exclude one person, and approve only the remainder.
+ await page.evaluate(saved=>localStorage.setItem('drogs-2027',JSON.stringify(saved)),saved);
+ await page.locator('#submission-readiness').selectOption('all');
+ await page.locator('#select-all-submissions').check();
+ await page.locator(`[data-bulk-key="pastor:${selected[1].code}"]`).uncheck();
+ assert.equal(await page.locator('[data-bulk-key]:checked').count(),1);
+ await page.locator('#review-bulk').click();
+ assert(await page.getByRole('heading',{name:'Approve 1 application?'}).isVisible());
+ await page.locator('#confirm-bulk').click();
+ const excluded=await page.evaluate(code=>JSON.parse(localStorage.getItem('drogs-2027'))[`pastor:${code}`],selected[1].code);
+ assert.deepEqual(excluded,saved[`pastor:${selected[1].code}`]);
+ assert.equal(await page.evaluate(code=>JSON.parse(localStorage.getItem('drogs-2027'))[`pastor:${code}`].review,selected[0].code),'Approved');
  await page.reload({waitUntil:'networkidle'});await page.locator('#submissions').click();assert((await page.locator(`[data-submission-code="${selected[0].code}"][data-submission-type="pastor"]`).textContent()).includes('Approved'));
  await page.setViewportSize({width:390,height:844});await page.screenshot({path:'/tmp/drogs-qa/bulk-mobile.png',fullPage:true});
  assert(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth));assert.deepEqual(errors,[]);

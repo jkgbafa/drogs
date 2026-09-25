@@ -10,5 +10,5 @@ window.BISHOP_QUESTIONS=[
  {id:'bishopLeadershipMeetings',title:'Did you hold leadership meetings with your pastors?',type:'choice',options:['Yes','No'],followUps:[{id:'bishopLeadershipMeetingsDetails',label:'How often did you meet, and what were the main outcomes?',type:'text',when:'Yes'}]},
  {id:'integrity',title:'Is there any matter of conduct, marriage, finance, authority or personal integrity that requires confidential review?',help:'You may request a private conversation without writing the details here.',type:'choice',options:['No matter to disclose','Yes — I request a confidential review']},
  {id:'bishopGrowthTarget',title:'What is your growth target for the coming year?',type:'text',help:'Describe your targets and the practical steps you plan to take.'},
- {id:'intention',title:'Do you wish to continue serving as a leader for the coming year?',help:'If you intend to resign, select that option. D.R.O.G.S will contact you privately.',type:'choice',options:['I wish to continue','I wish to resign','I need to discuss my position']}
+ {id:'intention',title:'Do you wish to continue serving as a leader for the coming year?',help:'If you intend to resign, select that option. DROGS will contact you privately.',type:'choice',options:['I wish to continue','I wish to resign','I need to discuss my position']}
 ];

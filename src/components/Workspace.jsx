@@ -21,7 +21,7 @@ export default function Workspace({ kind }) {
         dispose = (kind === 'admin' ? runtime.mountAdmin : runtime.mountPortal)(host.current, getDirectory());
         setReady(true);
       } catch (error) {
-        if (!cancelled) { console.error('Unable to open D.R.O.G.S', error); setError(true); }
+        if (!cancelled) { console.error('Unable to open DROGS', error); setError(true); }
       }
     }
     start();
@@ -30,7 +30,7 @@ export default function Workspace({ kind }) {
   return <>
     {!ready && <section className="workspace-loading" role="status">
       <img src={`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/assets/mitre-transparent.png`} alt="" width="72" height="86" />
-      <h1>D.R.O.G.S</h1>
+      <h1>DROGS</h1>
       <p>{error ? 'This page could not be loaded. Please try again.' : 'Opening your workspace…'}</p>
       {error && <button onClick={() => window.location.reload()}>Try again</button>}
     </section>}

@@ -17156,6 +17156,56 @@
       "key": "portraits/ee/eed7a9933ac563183c60327bb462ae65e6949bef7588f19a78ca2fb5c6c615b7.webp",
       "sha256": "eed7a9933ac563183c60327bb462ae65e6949bef7588f19a78ca2fb5c6c615b7",
       "bytes": 22518
+    },
+    "assets/outreach/brian-masuku.png": {
+      "key": "portraits/57/57cc5c6a96082cbebd4c621932bb6d59dd278d9309c739c26dc99faadefb430c.png",
+      "sha256": "57cc5c6a96082cbebd4c621932bb6d59dd278d9309c739c26dc99faadefb430c",
+      "bytes": 993706
+    },
+    "assets/outreach/leonard-hyde-red-edited.png": {
+      "key": "portraits/93/93ed32841ac1a0554433ef0475eae92b67f6da6f23853f010d45a367a68699b8.png",
+      "sha256": "93ed32841ac1a0554433ef0475eae92b67f6da6f23853f010d45a367a68699b8",
+      "bytes": 1905978
+    },
+    "assets/bishops/confirmed-321.jpeg": {
+      "key": "portraits/e2/e21dbea8fcda62f3950432363852e58508ebfa1db6114213e036d93c1d7e5b72.jpeg",
+      "sha256": "e21dbea8fcda62f3950432363852e58508ebfa1db6114213e036d93c1d7e5b72",
+      "bytes": 1610724
+    },
+    "assets/bishops/confirmed-322.jpeg": {
+      "key": "portraits/9d/9db969a1edfc11b9b8e43a67c3009648262ff551bb5cb7362453bcb36307f026.jpeg",
+      "sha256": "9db969a1edfc11b9b8e43a67c3009648262ff551bb5cb7362453bcb36307f026",
+      "bytes": 2152069
+    },
+    "assets/bishops/confirmed-323.png": {
+      "key": "portraits/0a/0aed05087328fb64fcc0c522c8633d9f1f5eba35d488c4b4c87c5c19f0aefdfc.png",
+      "sha256": "0aed05087328fb64fcc0c522c8633d9f1f5eba35d488c4b4c87c5c19f0aefdfc",
+      "bytes": 859045
+    },
+    "assets/bishops/confirmed-324.jpeg": {
+      "key": "portraits/10/107a43686ccd1b98c45e6f3eb9b988d122e4e4d509ad947403f856715991001f.jpeg",
+      "sha256": "107a43686ccd1b98c45e6f3eb9b988d122e4e4d509ad947403f856715991001f",
+      "bytes": 38323
+    },
+    "assets/bishops/confirmed-325.jpeg": {
+      "key": "portraits/4e/4e68ec53e8863431838d5454f4edb1fafabc732edc95ca2d473057cef545495a.jpeg",
+      "sha256": "4e68ec53e8863431838d5454f4edb1fafabc732edc95ca2d473057cef545495a",
+      "bytes": 78594
+    },
+    "assets/bishops/confirmed-326.jpeg": {
+      "key": "portraits/6b/6b55f0e3152cb1d4d571d8c3da3ac9f9852e0ceb9ac0685086a78aa6d4ced589.jpeg",
+      "sha256": "6b55f0e3152cb1d4d571d8c3da3ac9f9852e0ceb9ac0685086a78aa6d4ced589",
+      "bytes": 123760
+    },
+    "assets/bishops/confirmed-327.png": {
+      "key": "portraits/dd/dd92c0096ae9b2be7c91c919d15a04b431769067ac96d35589d0a7c884bc5040.png",
+      "sha256": "dd92c0096ae9b2be7c91c919d15a04b431769067ac96d35589d0a7c884bc5040",
+      "bytes": 23681559
+    },
+    "assets/outreach/confirmed-328.jpeg": {
+      "key": "portraits/90/90891fbba7d4ecc5e6e96bdd03b35571675d2ec2cbae3771f7271f26a2612dff.jpeg",
+      "sha256": "90891fbba7d4ecc5e6e96bdd03b35571675d2ec2cbae3771f7271f26a2612dff",
+      "bytes": 99435
     }
   }
 }
