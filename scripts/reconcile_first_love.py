@@ -2,6 +2,8 @@
 
 IDs are append-only. Ambiguous aliases are listed for review rather than guessed.
 """
+if __name__ == '__main__':
+    raise SystemExit('Legacy folder importer disabled. Use the named bishop roster and explicit role corrections; do not infer rank from photos.')
 from pathlib import Path
 import json,re
 ROOT=Path(__file__).resolve().parents[1]

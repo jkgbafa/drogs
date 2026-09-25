@@ -1,6 +1,6 @@
 """Account for every master-sheet row without renumbering existing records.
 
-Only four verified import omissions are restored. Exact names/recorded aliases
+Only verified import omissions are restored. Exact names/recorded aliases
 are used for the audit; ambiguous names remain unresolved rather than merged.
 The row-level audit stays private. Run with --restore to persist corrections.
 """
@@ -49,7 +49,7 @@ if args.restore:
                 bishop[key] = value
         bishop['previousPastorCode'] = duplicate['code']
         people['pastors'].remove(duplicate)
-missing_ids = {'2273', '971', '3435', '4001'}
+missing_ids = {'2273', '971', '3435', '4001', '4419'}
 field_map = {'yearAppointed':'YEARAPPOINTED', 'yearOrdained':'YEARORDAINED', 'gender':'GENDER',
              'mobile':'MOBILE', 'whatsapp':'WHATSAPP NUMBER', 'email':'ALTERNATEEMAIL',
              'adminRank':'ADMINRANK', 'ministryRank':'MINISTRYRANK', 'statusRank':'STATUSRANK',

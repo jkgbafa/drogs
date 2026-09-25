@@ -28,6 +28,10 @@ function selectRecord(type,code){
     current=BISHOPS.find(person=>person.previousPastorCode===code);
     if(current)currentType='bishop';
   }
+  if(!current&&type==='bishop'){
+    current=PASTORS.find(person=>(person.previousBishopCodes||[]).includes(code));
+    if(current)currentType='pastor';
+  }
 }
 const role=()=>currentType==='bishop'?'Leader':'Pastor';
 const cycle=()=>currentType==='bishop'?'leadership':'pastoral';

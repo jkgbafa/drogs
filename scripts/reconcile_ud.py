@@ -1,4 +1,5 @@
-"""Promote exact-name UD bishop-folder members without guessing ambiguous aliases."""
+"""Legacy importer disabled: a photo folder does not establish ministry rank."""
+raise SystemExit('Disabled: folder membership cannot add or promote bishop records. Use roster evidence and explicit role corrections.')
 from pathlib import Path
 import json,re
 from difflib import SequenceMatcher

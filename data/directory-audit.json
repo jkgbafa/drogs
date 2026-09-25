@@ -2,27 +2,27 @@
   "date": "2026-09-25",
   "countsAreProvisional": true,
   "currentBishopCounts": {
-    "UD-OLGC": 238,
-    "UO-FLC190": 77
+    "UD-OLGC": 174,
+    "UO-FLC190": 69
   },
   "currentPastorCounts": {
-    "UD-OLGC": 4343,
-    "UO-FLC190": 681
+    "UD-OLGC": 4383,
+    "UO-FLC190": 687
   },
-  "bishops": 315,
-  "pastors": 5024,
-  "bishopPhotos": 305,
-  "pastorPhotos": 2582,
+  "bishops": 243,
+  "pastors": 5070,
+  "bishopPhotos": 233,
+  "pastorPhotos": 2628,
   "sources": [
     "PASTORS DATA.xlsx",
     "FIRST LOVE BISHOPS AND PASTORS.xlsx",
     "FL BISHOPS GROUPS.pdf",
-    "Supplied named bishop portrait folders",
-    "User-confirmed identity merges"
+    "User-confirmed corrections"
   ],
   "notes": [
-    "Roster combines source membership and role corrections; not a verified current-officeholder census.",
-    "Codes are preserved through aliases when identities are merged.",
-    "Unmatched photos and ambiguous aliases are documented in the local reconciliation report."
+    "Photo-folder membership is not evidence of bishop rank.",
+    "72 folder-only bishop classifications withdrawn: 46 restored to pastor records, 26 retained privately without bishop classification.",
+    "243 retained bishop entries are source-based and still subject to user reconciliation; this is not a confirmed census.",
+    "All 4,709 master-sheet rows remain accounted for; current source row breakdown is in source-count-audit.json."
   ]
 }
