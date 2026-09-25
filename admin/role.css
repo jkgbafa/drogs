@@ -111,3 +111,17 @@ html[data-capture-protection="active"] img{-webkit-user-drag:none;pointer-events
 .organization-counts{margin-left:5px}
 @media(max-width:540px){.denomination-heading{padding:20px;gap:16px}.denomination-heading-logo{width:58px;height:58px}.result-count{flex-wrap:wrap}}
 .resignation-summary{margin:-16px 0 28px}.resignation-metric{display:flex;flex-direction:row;align-items:center;gap:16px;width:100%;text-align:left;background:#f0eaf2;border:1px solid #e0d5e4;border-radius:14px;padding:16px 22px;color:#62416d;cursor:pointer}.resignation-metric strong{font-size:27px;line-height:1}.resignation-metric span{font-size:13px;font-weight:750}.resignation-metric small{margin-left:auto;font-size:12px}@media(max-width:540px){.resignation-metric{flex-wrap:wrap}.resignation-metric small{margin-left:0;width:100%}}
+
+.record-sections{display:flex;flex-wrap:wrap;gap:10px;padding:18px 55px;border-block:1px solid var(--line);background:#f7faf9}
+.record-sections button{border:1px solid #d3e3e2;border-radius:10px;background:white;color:#087f82;padding:11px 16px;font-weight:650}
+#profile-info,#declaration-responses,#payment-proof{scroll-margin-top:85px}
+.answer-block h2,.admin-proof h2{font-size:23px;margin:0 0 14px;letter-spacing:-.5px}
+.answer-block .submission-timestamp{font-size:13px;color:#617780}
+.response-list{padding-left:26px;margin:24px 0}.response-list li{padding:16px 0 20px 8px;border-bottom:1px solid var(--line)}
+.response-list li::marker{color:#0d8587;font-weight:700}.response-list h3,.response-notes h3{font-size:16px;line-height:1.5;margin:0 0 10px;color:var(--ink)}
+.answer-block p{font-size:15px;line-height:1.65;white-space:pre-wrap;overflow-wrap:anywhere}.response-notes h3{margin-top:25px}
+.previous-declaration{border:1px solid var(--line);border-radius:12px;padding:16px;margin-top:20px}.previous-declaration summary{cursor:pointer;font-weight:650}
+.proof-open{display:block;width:100%;padding:0;border:0;background:transparent;color:#087f82;text-align:left}.proof-open span{display:block;font-weight:650;font-size:13px}.admin-proof p{font-size:13px;line-height:1.6;color:var(--muted);overflow-wrap:anywhere}
+.proof-dialog{width:min(1000px,94vw);height:90vh;padding:52px 20px 20px;border:0;border-radius:18px;background:#fff}.proof-dialog::backdrop{background:#071b22d9}.proof-dialog img{width:100%;height:100%;object-fit:contain}.proof-dialog button{position:absolute;right:12px;top:10px;width:34px;height:34px;border:0;border-radius:50%;background:#10262c;color:#fff;font-size:23px}
+.fact-grid b{overflow-wrap:anywhere}
+@media(max-width:720px){.record-sections{padding:16px 22px;gap:7px}.record-sections button{padding:10px;font-size:12px}.record-content>section,.record-content>aside{min-width:0}}
